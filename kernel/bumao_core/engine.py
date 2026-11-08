@@ -249,7 +249,7 @@ def round_auth_verdict(baseline_files, current, ledger_text, today, auth_words=N
         return (True, "本轮无核心件改动（比对 %d 件，新纳入基线 %d 件）" % (
             len(current or {}), seeded), new, seeded)
     if not (ledger_text or "").strip():
-        return (False, "有 %d 件核心件改动，但审批册为空，无从引授权原话" % len(changed),
+        return (False, "判拒（DENY · 无审批册）：有 %d 件核心件改动，但无审批册（或为空），无从引授权原话" % len(changed),
                 new, seeded)
     try:
         import gate_registry as _gr
@@ -267,7 +267,7 @@ def round_auth_verdict(baseline_files, current, ledger_text, today, auth_words=N
         else:
             new[_rel] = {"sha": _sha, "entry": _best}
     if bad:
-        return (False, "改而未授权 %d 件：%s" % (len(bad), "；".join(bad[:4])),
+        return (False, "判拒（DENY）：改而未授权 %d 件：%s" % (len(bad), "；".join(bad[:4])),
                 new, seeded)
     return (True, "%d 件核心件改动均有当日点名授权原话（条目号已推进）" % len(changed),
             new, seeded)
@@ -285,6 +285,11 @@ def _round_scope(kdir, entry):
     """A13 判定范围：内核代码/契约/文档＋入口 wrapper＋本端 10_rac 与 20_view/web 核心件。"""
     kroot = os.path.dirname(kdir)
     hx = os.path.dirname(kroot)
+    # 2026-11-09 修：单仓 clone 下本仓根即「区根」，再上一级会跳到仓外，
+    # 于是 A10／A13 永远读不到本仓 30_taizhang 里的审批册结构，理由变成「无审批册」。
+    # 若 kroot 自身带 30_taizhang，就以 kroot 为区根；三端布局（kernel 在上、区根在下）不受影响。
+    if os.path.isdir(os.path.join(kroot, "30_taizhang")):
+        hx = kroot
     scope = []
     for _d in (kdir, kroot):
         if not os.path.isdir(_d):
@@ -386,7 +391,7 @@ def _auth_gate(kdir=None):
         if not declared or not changed_on:
             return False, "契约缺 current_value 或 updated_at，授权闸无法判定"
         ok, detail, _r = _gr.version_approval_check(declared, changed_on,
-                                                   os.path.dirname(kroot))
+                                                   kroot)
         return ok, detail
     except Exception as _e:
         return False, "授权闸自身跑不起来：%r" % _e

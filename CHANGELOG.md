@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.16 — 2026-11-09
+
+本版只修判据取件，不放宽任何判定。This release only fixes where the gates find the ledger; no verdict was relaxed.
+
+- **A10／A13 取件修正** — 单仓 clone 下「区根」原被取成仓外上一级，`A10` 读不到 `30_taizhang/shenpi_jilu.txt`，只能报「无审批册」。现在本仓根带 `30_taizhang/` 时以本仓根为区根。Area-root resolution fixed so `A10` can see the shipped ledger template on a single-repo clone.
+- **不再读兄弟目录** — `find_approval_ledger()` 旧实现会向上走后翻兄弟目录，在发布仓同级布局下会读到别仓审批册；结论仍是 `DENY` 但理由写错。现在只沿直系祖先查找。No more sibling-directory scan.
+- **随包审批册结构模板** — 新增 `30_taizhang/shenpi_jilu.txt`（零条目），`A10` 输出 `A10 判定=DENY ｜ 判拒（DENY · 策略 deny）：审批册里没有可解析的【第 N 号】条目`。Shipped zero-entry template makes the DENY explicit and judgeable.
+- **未变** — 规则 0 条（`zero_rules` 声明）、闸门 28 项、应用内版本 `0.10`、`test_reverse.py` 5/5、`test_pretool.py` 10/10。Rules, gate count, in-app version and tests unchanged.
+- **已知红项** — `check --strict` `1/28`（仅 `A10`，按设计判 DENY）。`1/28` red, only `A10`.
+
 ## 0.15 — 2026-11-08
 
 本版是功能版：逃生令牌可按「具体工具＋具体载荷」绑定。This release ships a real security change: escape tokens can be bound to one exact tool + payload.
