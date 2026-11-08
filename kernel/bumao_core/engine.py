@@ -16,7 +16,8 @@
 
 """Bumao Core · Unified Kernel CLI
 一核三端——同一份 engine.py，通过注入 rules_db 适配不同产品。
-子命令：whoami / check [--strict] / audit / bump <L1|L2|L3> / show <id> / selftest / refresh
+子命令：whoami [--full] / check [--strict] [--quick] / audit / bump <L1|L2|L3> /
+        show <id> / selftest [--kernel] / refresh
 """
 
 import argparse
@@ -130,7 +131,28 @@ def _daiban_line():
     return "周期待办：" + ("、".join(parts) if parts else "无逾期、无今日到期")
 
 
-def cmd_whoami():
+def _import_gate_registry(kdir=None):
+    """导入同目录 gate_registry：既支持包内相对导入，也支持 sys.path.insert 的扁平导入。
+
+    2026-11-09：内核新增 pyproject/__init__.py 后，`import bumao_core.engine` 与
+    `sys.path.insert(...); import engine` 两种加载方式都必须可用，故统一从这里取模块。
+    """
+    try:
+        from . import gate_registry as _gr
+        return _gr
+    except ImportError:
+        pass
+    try:
+        import gate_registry as _gr
+        return _gr
+    except ImportError:
+        if kdir:
+            sys.path.insert(0, kdir)
+        import gate_registry as _gr
+        return _gr
+
+
+def cmd_whoami(full=False):
     try:
         dbm = _get_rules_db()
         meta = dbm.load_meta()
@@ -193,6 +215,13 @@ def cmd_whoami():
         # 端无关：内核不知道端身份，只能报实际被调用的那个脚本名。
         _entry_name = os.path.basename(sys.argv[0]) if (sys.argv and sys.argv[0]) else "<wrapper>.py"
         print("gates: run `python %s check --strict`" % _entry_name)
+        if full:
+            # --full 只追加诊断行；不带 --full 时输出与历史版本逐字一致。
+            _rules_dir = getattr(dbm, "RULES_DIR", "") or getattr(dbm, "ZH", "")
+            print("[full] 内核路径：%s" % here)
+            print("[full] Python：%s" % sys.version.split()[0])
+            print("[full] 规则目录：%s" % (_rules_dir or "<宿主未暴露>"))
+            print("[full] 子命令：whoami / check / audit / bump / show / selftest / refresh")
     except Exception as e:
         import traceback; traceback.print_exc()
         print("[ERROR] whoami failed: %s" % e)
@@ -249,10 +278,10 @@ def round_auth_verdict(baseline_files, current, ledger_text, today, auth_words=N
         return (True, "本轮无核心件改动（比对 %d 件，新纳入基线 %d 件）" % (
             len(current or {}), seeded), new, seeded)
     if not (ledger_text or "").strip():
-        return (False, "判拒（DENY · 无审批册）：有 %d 件核心件改动，但无审批册（或为空），无从引授权原话" % len(changed),
+        return (False, "有 %d 件核心件改动，但审批册为空，无从引授权原话" % len(changed),
                 new, seeded)
     try:
-        import gate_registry as _gr
+        _gr = _import_gate_registry(kdir=os.path.dirname(os.path.abspath(__file__)))
     except ImportError as _e:
         return (False, "gate_registry 不可导入，授权闸无法判定：%r" % _e, new, seeded)
     bad = []
@@ -267,7 +296,7 @@ def round_auth_verdict(baseline_files, current, ledger_text, today, auth_words=N
         else:
             new[_rel] = {"sha": _sha, "entry": _best}
     if bad:
-        return (False, "判拒（DENY）：改而未授权 %d 件：%s" % (len(bad), "；".join(bad[:4])),
+        return (False, "改而未授权 %d 件：%s" % (len(bad), "；".join(bad[:4])),
                 new, seeded)
     return (True, "%d 件核心件改动均有当日点名授权原话（条目号已推进）" % len(changed),
             new, seeded)
@@ -323,11 +352,7 @@ def _round_auth_gate(kdir, entry):
     状态基线落在审批册同端的 00_meta，不进 30_taizhang（台账白名单只管 .txt）。
     """
     try:
-        try:
-            import gate_registry as _gr
-        except ImportError:
-            sys.path.insert(0, kdir)
-            import gate_registry as _gr
+        _gr = _import_gate_registry(kdir)
         scope, hx = _round_scope(kdir, entry)
         if not scope:
             return False, "A13 判定范围为空，无法证明本轮改动"
@@ -376,11 +401,7 @@ def _auth_gate(kdir=None):
     """
     kdir = kdir or os.path.dirname(os.path.abspath(__file__))
     try:
-        try:
-            import gate_registry as _gr
-        except ImportError:
-            sys.path.insert(0, kdir)
-            import gate_registry as _gr
+        _gr = _import_gate_registry(kdir)
         kroot = os.path.dirname(kdir)
         cpath = os.path.join(kroot, "kernel_contract.json")
         with open(cpath, encoding="utf-8-sig") as _f:
@@ -398,7 +419,11 @@ def _auth_gate(kdir=None):
 
 
 def cmd_check(strict=False, quick=False):
-    """Run all gates with unified Out class"""
+    """Run all gates with unified Out class.
+
+    quick=True 只跑 A 段结构闸：跳过宿主注入的 B/Z 段、防缩水对账与检查凭据写入，
+    因此它不能替代 `check --strict`（结论行会明说）。
+    """
     out = Out()
 
     try:
@@ -559,8 +584,8 @@ def cmd_check(strict=False, quick=False):
         _a13_ok, _a13_detail = _round_auth_gate(_kdir, _entry)
         out.add("A", "A13", _a13_ok, "本轮改动须引用户授权原话", _a13_detail)
 
-        # --- B 段：各端注入的闸门 ---
-        b_gates = _get_b_gates()
+        # --- B 段：各端注入的闸门（quick 模式跳过） ---
+        b_gates = [] if quick else _get_b_gates()
         if b_gates:
             for gid, fn, label in b_gates:
                 try:
@@ -570,8 +595,8 @@ def cmd_check(strict=False, quick=False):
                     ok, detail = False, "%s raised %r" % (label, e)
                 out.add("B", gid, ok, label, detail)
 
-        # --- Z 段：重大错误册 ---
-        z_gates = _get_z_gates()
+        # --- Z 段：重大错误册（quick 模式跳过） ---
+        z_gates = [] if quick else _get_z_gates()
         if z_gates:
             for gid, fn, label in z_gates:
                 try:
@@ -587,7 +612,8 @@ def cmd_check(strict=False, quick=False):
         return 1
 
     # --- Gate registry verification (补充篇 §五 第2条) ---
-    if _settable_expected:
+    # quick 模式没跑 B 段，拿它做防缩水对账会得到假结论，故一并跳过。
+    if _settable_expected and not quick:
         _, exp = _settable_expected
         passed = verify_registration(exp, "wrapper")
         if not passed:
@@ -595,25 +621,31 @@ def cmd_check(strict=False, quick=False):
             return 1
 
     # Output
+    if quick:
+        print("[quick] 仅跑 A 段结构闸；B/Z 段、防缩水对账与检查凭据写入已跳过")
     out.emit()
     nfail = out.fail_count()
     n_a = out.count("A"); n_b = out.count("B")
     # 写检查凭据（社区版 rules_db 提供；未提供的端保持原样，不产生文件）
+    # quick 是结构子集，不写凭据，避免把「没跑全」的结果记成一次正式检查。
     _rec = getattr(_get_rules_db(), "record_check_result", None)
-    if callable(_rec):
+    if callable(_rec) and not quick:
         try:
             _rec(nfail, n_a, n_b, len(out.rows))
         except Exception as _e:
             print("[WARN] 检查凭据写入失败：%r" % _e)
     print("")
     if nfail == 0:
-        if n_b > 0:
+        if quick:
+            print("[结论] ALL PASS（quick：仅 A 段 %d 项，B/Z 段未跑）—— 不能替代 check --strict" % n_a)
+        elif n_b > 0:
             print("[结论] ALL PASS（A段 %d 项 + B段 %d 项） —— 允许记账" % (n_a, n_b))
         else:
             print("ALL PASS (%d gates)" % len(out.rows))
         return 0
     else:
-        print("FAIL (%d/%d gates red)" % (nfail, len(out.rows)))
+        print("FAIL (%d/%d gates red%s)" % (
+            nfail, len(out.rows), "；quick 未跑 B/Z" if quick else ""))
         # 票面 rc 必须与结论一致：结论 FAIL 即 rc 非 0，不因缺 --strict 而报成功。
         return 1
 
@@ -682,24 +714,130 @@ def cmd_bump(level):
         return 1
 
 
-def cmd_selftest():
-    """Self-test — verify core can load and validate"""
+def cmd_selftest(kernel=False):
+    """自检入口——两条路径刻意分开，不互相冒充。
+
+    selftest --kernel  内核自检：不依赖宿主 rules_db，验证内核可加载、CLI 可解析、
+                       防缩水机制可用；可在任意目录独立运行。
+    selftest           宿主集成自检：需要宿主先 configure(rules_db)，逐项检查规则库
+                       契约成员是否可用。未注入时明确报「需宿主注入规则库」。
+    """
+    if kernel:
+        return cmd_selftest_kernel()
     try:
         dbm = _get_rules_db()
+    except RuntimeError:
+        print("[ERROR] 内核自检需宿主注入规则库（rules_db）；独立运行请用："
+              "python -m bumao_core.engine selftest --kernel")
+        return 2
+
+    rows = []
+    try:
         db = dbm.index(dbm.load())
+        meta = dbm.load_meta()
         clauses = db["clauses"]
-        n_pass = 0
-        n_total = 8
-
-        if dbm.dup_ids(db) == []: n_pass += 1
-        if dbm.block_broken(clauses) == []: n_pass += 1
-        if all(not c.get("broken_refs") for c in clauses): n_pass += 1
-
-        print("selftest完成（引擎%d/%d）" % (n_pass, n_total))
-        return 0
+        rows.append(("H1", isinstance(db, dict) and
+                     all(k in db for k in ("meta", "clauses", "chapters")),
+                     "load/index 返回 meta/clauses/chapters", ""))
+        rows.append(("H2", dbm.dup_ids(db) == [], "dup_ids 无重复", ""))
+        rows.append(("H3", dbm.block_broken(clauses) == [], "block_broken 无断裂", ""))
+        rows.append(("H4", all(not c.get("broken_refs") for c in clauses), "broken_refs 全空", ""))
+        rows.append(("H5", bool(meta.get("name")) and bool(meta.get("version")),
+                     "load_meta 含 name/version",
+                     "%s v%s" % (meta.get("name", ""), meta.get("version", ""))))
     except Exception as e:
-        print("[ERROR] selftest failed: %s" % e)
+        print("[ERROR] 宿主集成自检跑不起来：%r" % e)
         return 1
+
+    for cid, ok, name, detail in rows:
+        print("%s %s %s%s" % ("PASS" if ok else "FAIL", cid, name,
+                             ("  :: %s" % detail) if detail else ""))
+    n_pass = sum(1 for r in rows if r[1])
+    print("宿主集成自检 %s（%d/%d）" % ("PASS" if n_pass == len(rows) else "FAIL",
+                                       n_pass, len(rows)))
+    return 0 if n_pass == len(rows) else 1
+
+
+def cmd_selftest_kernel():
+    """内核自检：不读任何宿主规则库、不写任何宿主账本。"""
+    import contextlib
+    import io
+
+    rows = []
+
+    def _run(cid, name, fn):
+        try:
+            ok, detail = fn()
+        except Exception as e:
+            ok, detail = False, "%r" % e
+        rows.append((cid, bool(ok), name, detail))
+
+    def _cli():
+        p = build_parser()
+        choices = None
+        for _a in p._actions:
+            if isinstance(_a, argparse._SubParsersAction):
+                choices = sorted(_a.choices.keys())
+        want = sorted(["whoami", "check", "audit", "bump", "show", "selftest", "refresh"])
+        if choices != want:
+            return False, "子命令=%s" % choices
+        p.parse_args(["check", "--quick"])
+        p.parse_args(["whoami", "--full"])
+        p.parse_args(["selftest", "--kernel"])
+        return True, "%d 子命令，无重复注册" % len(choices)
+
+    def _out():
+        o = Out()
+        o.add("A", "K1", True, "绿")
+        o.add("B", "K2", False, "红")
+        ok = (o.count("A") == 1 and o.fail_count() == 1 and len(o.fails()) == 1)
+        return ok, "A=1 fail=1"
+
+    def _anti_shrink():
+        global _b_gates_list, _z_gates_list, _registered_gate_ids, _settable_expected
+        snap = (list(_b_gates_list), list(_z_gates_list),
+                set(_registered_gate_ids), _settable_expected)
+        buf = io.StringIO()
+        try:
+            with contextlib.redirect_stdout(buf):
+                register("K1", lambda: True, "自检闸一")
+                register("K2", lambda: True, "自检闸二")
+                set_expected("kernel-selftest", frozenset(["K1", "K2"]))
+                good = verify_registration({"K1", "K2"}, "kernel-selftest")
+                bad = verify_registration({"K1", "K2", "K3"}, "kernel-selftest")
+        finally:
+            (_b_gates_list, _z_gates_list,
+             _registered_gate_ids, _settable_expected) = snap
+        return (good and not bad), "齐套=%s 缺一=%s" % (good, not bad)
+
+    def _registry():
+        gr = _import_gate_registry()
+        r = gr.version_approval("0.10", "2020-01-01", "")
+        ok = (r["verdict"] == "DENY" and "判拒" in r["l2_detail"])
+        return ok, "A10 空审批册 → %s" % r["verdict"]
+
+    def _guard():
+        try:
+            _get_rules_db()
+        except RuntimeError as e:
+            return ("rules_db not configured" in str(e)), "未注入时抛出明确错误"
+        return False, "未注入时竟然取到了规则库"
+
+    _run("K1", "engine 可导入",
+         lambda: (True, "engine=%s Python=%s" % (__name__, sys.version.split()[0])))
+    _run("K2", "CLI 解析器（7 子命令，无重复注册）", _cli)
+    _run("K3", "Out 计数与失败收集", _out)
+    _run("K4", "防缩水 register／set_expected／verify_registration", _anti_shrink)
+    _run("K5", "gate_registry 可导入且 A10 判据可跑", _registry)
+    _run("K6", "未注入 rules_db 时守卫明确报错", _guard)
+
+    for cid, ok, name, detail in rows:
+        print("%s %s %s%s" % ("PASS" if ok else "FAIL", cid, name,
+                             ("  :: %s" % detail) if detail else ""))
+    n_pass = sum(1 for r in rows if r[1])
+    print("内核自检 %s（%d/%d）" % ("PASS" if n_pass == len(rows) else "FAIL",
+                                   n_pass, len(rows)))
+    return 0 if n_pass == len(rows) else 1
 
 
 def cmd_refresh():
@@ -821,44 +959,42 @@ def build_parser():
     sub = parser.add_subparsers(dest="command")
 
     p = sub.add_parser("whoami"); p.add_argument("--full", action="store_true")
-    sub.add_parser("check"); check_p = sub.add_parser("check"); check_p.add_argument("--strict", action="store_true"); check_p.add_argument("--quick", action="store_true")
+    p = sub.add_parser("check"); p.add_argument("--strict", action="store_true"); p.add_argument("--quick", action="store_true")
     sub.add_parser("audit")
     p = sub.add_parser("bump"); p.add_argument("--level", default="L1")
     p = sub.add_parser("show"); p.add_argument("cid")
-    sub.add_parser("selftest")
+    p = sub.add_parser("selftest"); p.add_argument("--kernel", action="store_true")
     sub.add_parser("refresh")
 
     return parser
 
+
 def main(argv=None):
-    """Main entry point. Accepts argv or uses sys.argv."""
+    """Main entry point. Accepts argv or uses sys.argv.
+
+    解析器只有 build_parser() 一处定义：2026-11-09 修复 build_parser() 重复注册 check
+    的缺陷，同时把 main() 里那份重复的解析器删掉——两份解析器正是「文档声明的参数
+    实际没注册」的根因。
+    """
     if argv is None:
         argv = sys.argv[1:]
 
-    ap = argparse.ArgumentParser(prog="bumao-core")
-    sub = ap.add_subparsers(dest="cmd")
-
-    sub.add_parser("whoami")
-    cp = sub.add_parser("check"); cp.add_argument("--strict", action="store_true")
-    sub.add_parser("audit")
-    p = sub.add_parser("bump"); p.add_argument("--level", default="L1")
-    p = sub.add_parser("show"); p.add_argument("cid")
-    sub.add_parser("selftest")
-    sub.add_parser("refresh")
-
-    a = ap.parse_args(argv) if argv else ap.parse_args()
-    cmd = getattr(a, "cmd", None)
+    ap = build_parser()
+    # 始终用传入的 argv 解析；传空列表就是「无子命令」，不能回落到 sys.argv
+    # （否则在 pytest 之类的宿主进程里会误解析别人的命令行参数）。
+    a = ap.parse_args(argv)
+    cmd = getattr(a, "command", None)
 
     if not cmd:
         ap.print_help(); return 2
 
     rc = 2
-    if cmd == "whoami": rc = cmd_whoami()
-    elif cmd == "check": rc = cmd_check(strict="--strict" in argv)
+    if cmd == "whoami": rc = cmd_whoami(full=a.full)
+    elif cmd == "check": rc = cmd_check(strict=a.strict, quick=a.quick)
     elif cmd == "audit": rc = cmd_audit()
     elif cmd == "bump": rc = cmd_bump(getattr(a, "level", "L1"))
     elif cmd == "show": rc = cmd_show(getattr(a, "cid", ""))
-    elif cmd == "selftest": rc = cmd_selftest()
+    elif cmd == "selftest": rc = cmd_selftest(kernel=a.kernel)
     elif cmd == "refresh": rc = cmd_refresh()
 
     return rc or 0

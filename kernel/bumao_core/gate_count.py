@@ -29,9 +29,14 @@
     python gate_count.py --no-run        # 只静态计数，不跑 check（快）
     python gate_count.py <端名>          # 只算一端
 
+前提：本件必须位于 <HX>/kernel/bumao_core，且 <HX> 下同级检出三端
+      （community／minimal／personal，各含 10_rac 与 20_view）。
+      不满足时打印「需要三端同级检出」并退出码 2，不判 PASS/FAIL。
+
 判定（退出码 0 的条件，三端全部满足）：
     实际 register 数 == set_expected 声明数 == check 运行时报出的闸门数
     且 实际 ID 集合 == 声明 ID 集合（逐个比，不只比数量）
+退出码：0 PASS；1 FAIL；2 环境不满足（需要三端同级检出，不可判定）。
 
 生效：2026-11-04（2026-11-06 改：期望集从宿主层 gates_decl.json 现读）｜ 端无关：本脚本不写死任何闸门 ID
 """
@@ -209,12 +214,43 @@ def count_edition(edition, do_run):
     return res
 
 
+def _env_ok():
+    """检查运行前提：<HX>/kernel/bumao_core 布局 + 三端同级检出。
+
+    返回 (ok, msg)。ok=False 时由 main 以退出码 2 结束，不判 PASS/FAIL。
+    这样单仓 clone（bumao_core 直接在 repo 根）不会把父目录当成 HX 去扫别的仓，
+    也不会在 0 端时打出「PASS 0 端」的假绿。
+    """
+    parent = os.path.dirname(HERE)
+    if os.path.basename(parent).lower() != "kernel":
+        return False, (
+            "需要三端同级检出：本件必须位于 <HX>/kernel/bumao_core 布局。\n"
+            "  当前 HERE = %s\n"
+            "  父目录名 = %s（应为 kernel）\n"
+            "  说明：单仓 clone 或发布仓布局下，HX 会指到仓外目录；本件拒绝在此运行。"
+            % (HERE, os.path.basename(parent)))
+    if len(EDITIONS) < 3:
+        return False, (
+            "需要三端同级检出（community／minimal／personal，各含 10_rac 与 20_view）。\n"
+            "  当前 HX = %s\n"
+            "  发现 %d 端：%s\n"
+            "  说明：少于三端时计数口径不成立，不判 PASS/FAIL。"
+            % (HX, len(EDITIONS), ", ".join(EDITIONS) or "（无）"))
+    return True, ""
+
+
 def main():
     ap = argparse.ArgumentParser(description="三端闸门数唯一计数口径（补充篇 §五1）")
     ap.add_argument("edition", nargs="?", default="all",
                     choices=["all"] + list(EDITIONS))
     ap.add_argument("--no-run", action="store_true", help="不跑 check --strict，只静态计数")
     args = ap.parse_args()
+
+    ok_env, env_msg = _env_ok()
+    if not ok_env:
+        print("[不可判定] %s" % env_msg)
+        print("退出码 2（环境不满足，不是 PASS/FAIL）")
+        return 2
 
     cmd = "python gate_count.py %s%s" % (
         "" if args.edition == "all" else args.edition,

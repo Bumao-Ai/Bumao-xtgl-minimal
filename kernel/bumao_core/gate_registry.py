@@ -26,7 +26,9 @@
       run_all(db, strict=True)
   闸门不再硬编码在 engine.py，而是从规则包 metadata.gates 声明装载。
   该计划 L193 的复选框「- [ ] 写 gate_registry.py（动态闸门注册表）」仍未勾选。
-  → GateRegistry 类【尚未落地】。本文件目前只提供注册完整性的辅助校验函数。
+  → GateRegistry 类【已落地】（2026-11-08 · P1-5 C3—C5）：注册/注销/校验/运行
+    四组接口委托 engine.register()，不另记账；文件后半段仍是注册完整性的辅助
+    校验函数。
 
 【现在生效的防缩水机制在哪】不在本文件，在 engine.py：
       _registered_gate_ids  每次 register() 都记录 gid
@@ -90,7 +92,10 @@ def _patch_engine_register():
     try:
         import engine as _fce
     except ImportError:
-        return False
+        try:
+            from . import engine as _fce
+        except ImportError:
+            return False
     if getattr(_fce, "_gate_registry_patched", False):
         return True
     _fce._original_register = _fce.register
@@ -133,19 +138,15 @@ class RegistryMismatch(Exception):
     """期望闸门缺失（或多出）时抛出。"""
 
 
-def require_all_registered(expected, name="unknown", max_extra=0):
-    """防静默缩水核对：expected 里每个 gid 都必须已注册。
+def _compare_registered(expected, registered, name="unknown", max_extra=0):
+    """期望集与已注册集对账的唯一实现；不符即抛 RegistryMismatch。
 
-    参数 expected 必须由调用方（各端 wrapper）传入 —— 本文件不再内置任何
-    端的期望集，见模块 docstring「2026-11-04 的改动」。
-
-    原缺陷：max_extra 默认 3，即允许多出 3 个未声明闸门而不报错。闸门「多出」
-    虽不等于缩水，但会让声明集与实际集长期漂移而无人察觉，故默认收紧为 0。
-
-    返回 True；不符则抛 RegistryMismatch。
+    registered 由调用方显式给出：模块级 require_all_registered 传 _REGISTRY，
+    GateRegistry.validate 传它所注入引擎的 _registered_gate_ids —— 两处共用同一
+    判据与同一报错文案，避免「绑了引擎却拿全局账对账」的二套账。
     """
     expected = frozenset(expected)
-    registered = frozenset(_REGISTRY.keys())
+    registered = frozenset(registered)
     missing = sorted(expected - registered)
     extra = sorted(registered - expected)
 
@@ -167,6 +168,20 @@ def require_all_registered(expected, name="unknown", max_extra=0):
               "check --strict 必须立刻 FAIL"
         )
     return True
+
+
+def require_all_registered(expected, name="unknown", max_extra=0):
+    """防静默缩水核对：expected 里每个 gid 都必须已注册。
+
+    参数 expected 必须由调用方（各端 wrapper）传入 —— 本文件不再内置任何
+    端的期望集，见模块 docstring「2026-11-04 的改动」。
+
+    原缺陷：max_extra 默认 3，即允许多出 3 个未声明闸门而不报错。闸门「多出」
+    虽不等于缩水，但会让声明集与实际集长期漂移而无人察觉，故默认收紧为 0。
+
+    返回 True；不符则抛 RegistryMismatch。
+    """
+    return _compare_registered(expected, _REGISTRY.keys(), name, max_extra)
 
 
 def extract_gate_ids_from_source(src):
@@ -417,3 +432,121 @@ def version_approval_check(declared_version, changed_on, start_dir):
     detail = "A10 判定=%s ｜ L2 %s ｜ L3 %s" % (
         r["verdict"], r["l2_detail"], r["l3_detail"])
     return ok, detail, r
+
+
+# ── 动态闸门注册表（P1-5 · C3—C5） ─────────────────────────────────────
+# 立类原因：unified_kernel_plan_261104_v1.txt §四 要求闸门由规则包声明装载，
+# 不再硬编码在 engine.py。本类不另造第二本账：注册一律委托 engine.register()，
+# 期望集唯一来源仍是各端宿主（wrapper）的 set_expected()。本类只补三件事：
+#   重复 gid 立刻报错（防后注册静默覆盖先注册）
+#   注销时同步清 engine 的三张账（B/Z 闸列表与 _registered_gate_ids）
+#   按声明顺序整跑，strict 下首个失败即抛出（不再只靠事后 check 汇总）
+# 端无关：本类不含端名字面量，也不含具体闸门 ID 字面量。
+
+class GateRegistry:
+    """闸门注册/注销/校验/整跑接口；engine 模块可注入，缺省按名导入。"""
+
+    def __init__(self, engine_module=None, name="gate_registry"):
+        self._engine = engine_module
+        self.name = str(name or "gate_registry")
+        self._order = []  # 登记顺序，run_all 按此整跑
+
+    def _engine_mod(self):
+        if self._engine is None:
+            try:
+                import engine as _eng  # 与 _patch_engine_register() 同一导入口径
+            except ImportError:
+                from . import engine as _eng
+            self._engine = _eng
+        return self._engine
+
+    def register(self, section, gid, label, check_fn, clause_ref=None, heavy=False):
+        """登记一道闸，返回 check_fn（便于装饰器写法）。
+
+        section：engine 既有的 B/Z 分区；check_fn 按 engine 现有约定为无参调用，
+        需要库的闸由宿主闭包携带，本类不猜签名。重复 gid 抛 RegistryMismatch。
+        """
+        gid = str(gid or "").strip()
+        if not gid:
+            raise RegistryMismatch("[gate_registry] %s: 空 gid 不允许登记" % self.name)
+        eng = self._engine_mod()
+        if gid in getattr(eng, "_registered_gate_ids", set()):
+            raise RegistryMismatch(
+                "[gate_registry] %s: 重复登记 %s —— 后注册会静默覆盖先注册，"
+                "先显式 unregister() 再改" % (self.name, gid))
+        eng.register(gid, check_fn, label, section)
+        # engine.register 被 _patch_engine_register() 补过时只写三字段，
+        # 这里补齐声明侧元数据（clause_ref/heavy 供审计与重闸门筛选用）。
+        _REGISTRY[gid] = {
+            "gid": gid, "label": str(label)[:80],
+            "file": getattr(check_fn, "__module__", type(check_fn).__name__),
+            "section": section, "clause_ref": clause_ref, "heavy": bool(heavy),
+        }
+        self._order.append(gid)
+        return check_fn
+
+    def unregister(self, gid):
+        """注销一道闸：同步清 engine 的 B/Z 列表与已注册 ID 集，返回是否曾登记。"""
+        gid = str(gid or "").strip()
+        eng = self._engine_mod()
+        removed = False
+        for lst_name in ("_b_gates_list", "_z_gates_list"):
+            lst = getattr(eng, lst_name, None)
+            if isinstance(lst, list):
+                before = len(lst)
+                lst[:] = [t for t in lst if t[0] != gid]
+                removed = removed or len(lst) != before
+        ids = getattr(eng, "_registered_gate_ids", None)
+        if isinstance(ids, set):
+            removed = removed or (gid in ids)
+            ids.discard(gid)
+        _REGISTRY.pop(gid, None)
+        if gid in self._order:
+            self._order.remove(gid)
+        return removed
+
+    def validate(self, expected=None):
+        """期望集对账。expected 必须由宿主显式传入（本类不内置任何清单）。
+
+        对账取本类所注入引擎的 _registered_gate_ids，不用模块级 _REGISTRY ——
+        绑了哪个引擎就核对哪本账，避免注入引擎与全局账分叉。
+        """
+        if expected is None:
+            raise RegistryMismatch(
+                "[gate_registry] %s: validate() 需要显式 expected —— "
+                "期望集唯一来源是宿主的 set_expected()" % self.name)
+        ids = getattr(self._engine_mod(), "_registered_gate_ids", None)
+        registered = ids if isinstance(ids, set) else _REGISTRY.keys()
+        return _compare_registered(expected, registered, name=self.name)
+
+    def run_all(self, db=None, strict=False):
+        """按登记顺序整跑全部闸，返回 [(gid, ok, detail)]。
+
+        db 仅为签名兼容保留：现有闸函数为无参，需库的闸由宿主闭包携带。
+        strict=True 时首个失败（或抛异常）直接抛出，交给调用方当场停。
+        """
+        eng = self._engine_mod()
+        results = []
+        gates = list(getattr(eng, "_b_gates_list", [])) + list(getattr(eng, "_z_gates_list", []))
+        for gid, fn, label in gates:
+            detail = ""
+            try:
+                ok = bool(fn())
+            except Exception as e:
+                if strict:
+                    raise
+                ok, detail = False, "%s: %s" % (type(e).__name__, e)
+            results.append((gid, ok, detail))
+            if strict and not ok:
+                raise RegistryMismatch("[gate_registry] %s: 闸 %s 失败 %s"
+                                       % (self.name, gid, detail))
+        return results
+
+    def list_gates(self):
+        """列出当前已注册闸门（gid/label/函数名），供宿主自检与审计落记录。"""
+        eng = self._engine_mod()
+        out = []
+        for gid, fn, label in list(getattr(eng, "_b_gates_list", [])) + list(getattr(eng, "_z_gates_list", [])):
+            out.append({"gid": gid, "label": label,
+                        "fn": getattr(fn, "__name__", type(fn).__name__)})
+        return out

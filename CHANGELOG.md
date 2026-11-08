@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.17 — 2026-11-09
+
+本版只做内核同步，不新增规则、不放宽任何判定；**是本阶段的最后一个版本**，未来一个月不再主动迭代（只做维护与修复）。Kernel sync only; this is the last release of this phase.
+
+- **内核随 core `v0.2.0-beta.5` 同步** — `kernel/bumao_core/` 的 `engine.py`、`gate_registry.py`、`bumao_core_rules.py`、`gate_count.py`、`test_equivalence.py`、`HOST_CONTRACT.md` 覆盖到 core 同版本，core 是唯一上游源头。
+- **`build_parser()` 重复注册修复** — 旧内核连续两次 `sub.add_parser("check")`，调用即抛 `argparse.ArgumentError: conflicting subparser: check`；`main()` 过去另建一份解析器，文档里的参数因此从未真正注册。现在只有一份，`main()` 复用。
+- **三个参数由文档承诺改为真实实现** — `check --quick`（只跑 A 段结构闸，结论行明说不能替代 `--strict`）、`whoami --full`（追加 4 行诊断，不带时逐字不变）、`selftest --kernel`（6 项宿主无关自检）。随包新增 `kernel/bumao_core/test_build_parser.py`（4/4）。
+- **两种加载方式并存** — 新增 `kernel/bumao_core/__init__.py`，`pip install -e .` 与历史 `sys.path.insert` 都可用；`gate_count.py`／`test_equivalence.py` 在单仓 clone 下改为打印「需要三端同级检出」并退出 2，不再假绿或误报红。
+- **未变** — 规则 0 条／28 项检查、应用内版本 `0.10`、目录结构；`A10`／`A13` 判定逻辑未动，无当日授权条目时仍判 `DENY`。
+- **已知红项（设计行为）** — 本机工作树已有基线，当日改内核件使 `A13` 判红（`改而未授权`）；`A10` 因随包审批册零条目恒判 `DENY`。下载件解出后首跑无基线，`A13` 先纳基线后通过，只剩 `A10`。
+
 ## 0.16 — 2026-11-09
 
 本版只修判据取件，不放宽任何判定。This release only fixes where the gates find the ledger; no verdict was relaxed.

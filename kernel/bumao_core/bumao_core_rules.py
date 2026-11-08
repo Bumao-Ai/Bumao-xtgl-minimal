@@ -14,28 +14,25 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-"""rules_db.py · 统一规则装载 —— bumao-core 基础设施
+"""rules_db 参考装载器 —— **参考实现，不参与运行时**
 
-支持三种规则格式自动探测：
+支持三种历史规则格式的解析演示：
 1. zhunze/z*.json（个人版旧格式）
-2. ZH/*.json（社区版旧格式）  
+2. ZH/*.json（社区版旧格式）
 3. rules/r*.json（极简版旧格式 + 未来标准格式）
 4. z00..z13.json（新版本——按章节文件名）
 
-所有格式映射到统一内部结构后分发给闸门和渲染器。
-
-【状态标注 · 2026-11-04 用户裁定 21：保留但标注为「未接线的参考实现」】
-一、现状（实测 2026-11-04 20:01:44，见交接件附录 E.4）：
-    全库 import 本模块命中 0 次；三端 wrapper 引用 0 次。本文件当前是零引用死代码。
-二、为何接不上：本模块公开名与 engine.py 实际要求的宿主契约不一致——
-    本模块提供 load_clauses / duplicate_ids / find_root / load_db / index / block_broken /
+【状态 · 2026-11-09 定为「参考实现，不参与运行时」】
+一、内核 engine.py 对本模块零引用；三端 wrapper 也零引用。
+二、本模块**不满足** HOST_CONTRACT.md §三 的宿主 12 成员契约：
+    本模块提供 load_db / duplicate_ids / find_root / index / block_broken /
     shell_clauses / missing_keys / root_mismatches / broken_refs / load_meta / load_json；
-    engine.py 要的是 load / index / dup_ids / block_broken / shell_clauses / load_meta /
-    ROOT / HERE / render_all（共 10 个成员，其中 _inner 为私有 fallback）。
-    本模块无 render_all、无 dup_ids、无 load、无模块级 ROOT。
-三、接线属【未经授权架构决策禁令】第⑤类「规则加载机制变更」，
-    未经用户逐项裁定，任何人不得启用本模块、不得改三端的规则装载路径。
-四、本标注只加注释，未改任何逻辑；改后三端 check --strict 须仍为 ALL PASS。
+    契约要的是 load / dup_ids / block_broken / shell_clauses / load_meta /
+    ROOT / HERE / render_all。
+    缺 load()、dup_ids()、render_all() 与模块级 ROOT，故**不得**直接传给 configure()。
+三、它只用于说明历史规则目录如何被解析。真实接入请自备满足 12 成员的 rules_db，
+    可直接复制运行的最小样例见仓库根目录 examples/minimal_host.py。
+四、本文件不参与任何三端运行时；改动它不会改变任何一端的 check 结论。
 """
 
 import io

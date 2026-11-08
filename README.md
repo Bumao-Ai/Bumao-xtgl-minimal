@@ -9,8 +9,8 @@ Status: maintenance pause
 ![checks](https://img.shields.io/badge/checks-28-brightgreen)
 ![runtime](https://img.shields.io/badge/runtime-stdlib%20only-informational)
 
-> **Two version spaces** — the in-app version in `00_meta/meta.json` is `0.10`; the repository release tag is `v0.16`. They are two independent numbering spaces, not the same number.
-> **两个版本空间** — 应用内版本（`00_meta/meta.json`）是 `0.10`；仓库发布 tag 是 `v0.16`。这是两个独立的编号空间，不是同一个数字。
+> **Two version spaces** — the in-app version in `00_meta/meta.json` is `0.10`; the repository release tag is `v0.17`. They are two independent numbering spaces, not the same number.
+> **两个版本空间** — 应用内版本（`00_meta/meta.json`）是 `0.10`；仓库发布 tag 是 `v0.17`。这是两个独立的编号空间，不是同一个数字。
 >
 > **Cold start** — to resume iteration, start from [`RETURN_HERE.md`](RETURN_HERE.md).
 > **冷启动** — 恢复迭代从 [`RETURN_HERE.md`](RETURN_HERE.md) 开始。
@@ -27,7 +27,7 @@ Zero-rule skeleton of Bumao XTGL: 28 structural checks, your rules, stdlib only.
 ## Quick start (30 seconds)
 
 ```bash
-git clone -b v0.16 https://github.com/Bumao-Ai/Bumao-xtgl-minimal.git
+git clone -b v0.17 https://github.com/Bumao-Ai/Bumao-xtgl-minimal.git
 cd Bumao-xtgl-minimal/10_rac
 python BumaoXTGL_Minimal_v01.py whoami
 python BumaoXTGL_Minimal_v01.py check --strict   # exit code is the verdict
@@ -35,20 +35,20 @@ python BumaoXTGL_Minimal_v01.py check --strict   # exit code is the verdict
 
 Add your rules by dropping chapter files into `10_rac/` and following the loader in `rules_db.py`; `render.py` regenerates the views. `zero_rules` is declared in `00_meta/meta.json`, so the skeleton passes without inventing content.
 
-`v0.16` is the tag this README was released with; see Releases and verify the zip with `SHA256SUMS`.
+`v0.17` is the tag this README was released with; see Releases and verify the zip with `SHA256SUMS`.
 
 ## Proof of work
 
 | Item | Value | Source |
 |---|---|---|
-| Commits at `v0.16` | 15 | `git rev-list --count v0.16` |
+| Commits at `v0.17` | 16 | `git rev-list --count v0.17` |
 | Last commit | 2026-11-09 | `git log -1 --date=short` |
 | Rules | 0 (declared) | `check --strict` → `0 ch / 0 cls (zero_rules declared)` |
 | Check items | 28 | `check --strict` conclusion (`1/28 gates red`) |
 | Reverse cases | 5 | `10_rac/tests/test_reverse.py`; last run 5/5 pass |
 | Defect ledger | 0 real closed items | `30_taizhang/quexian_taizhang.txt` holds 2 sanitized sample rows |
 | Adapter cases | 10 | `10_rac/tests/test_pretool.py`; last run 10/10 pass (incl. bound-token refusal) |
-| Releases | 8 tags, `v0.1` → `v0.16`, 2026-11-08 → 2026-11-09 | `git tag` |
+| Releases | 9 tags, `v0.1` → `v0.17`, 2026-11-08 → 2026-11-09 | `git tag` |
 | Changelog | [CHANGELOG.md](CHANGELOG.md) | — |
 
 `A10` is red on a public clone by design: it needs a same-day authorized entry in `30_taizhang/shenpi_jilu.txt`, and this edition ships that file as a **structure template with zero entries**. With no parseable entry the gate is **explicitly denied (DENY)** — the result is FAIL, never PASS. "Red by design" means no same-day authorization credential ships here; it is not a waiver. The detail line now starts with `A10 判定=DENY` and names the policy (`deny`).
