@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.1 — 2026-11-08
+
+内置内核。
+
+- 本仓新增 `kernel/bumao_core/`，克隆后无需外部 `bumao-core` 即可运行。
+- 入口脚本内核查找路径由 `../../kernel/bumao_core` 改为 `../kernel/bumao_core`。
+- 内核维护方式：以 `bumao-core` 为唯一源头，整目录覆盖本仓副本。
+
 ## 0.1 — 2026-11-08
 
 首次公开发布。

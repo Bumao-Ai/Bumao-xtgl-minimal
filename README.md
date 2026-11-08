@@ -3,25 +3,23 @@
 一句话：它不提供规矩，只规定「规矩该怎么写，机器才认」。本仓带内核接入骨架与 28 条示例模板，**不带任何生效规则**。
 
 - 运行时依赖：**纯 Python 标准库**，要求 **Python 3.12 或更高**，不需要 `pip install`。
-- 本仓是四个独立仓库之一，**不自带内核**，需要同级目录中的 `bumao-core`。
+- 本仓是四个独立仓库之一，**已内置内核**（`kernel/bumao_core/`），克隆后可直接运行。
 - 想要「装上就能用的一套规则」，请用 `bumao-xtgl-community`；本仓只有骨架。
 
-## 依赖：内核必须放在上一级
+## 内核已内置
 
-入口脚本按 `10_rac/../../kernel/bumao_core` 查找内核。请把内核仓的 `bumao_core/` 放到本仓**上一级**的 `kernel/` 目录，形成：
+入口脚本按 `10_rac/../kernel/bumao_core` 查找内核，内核随本仓一起分发，克隆后无需另装：
 
 ```
-<你的工作目录>/
+bumao-xtgl-minimal/
 ├── kernel/
-│   └── bumao_core/          ← 来自 bumao-core 仓
-└── bumao-xtgl-minimal/
-    └── 10_rac/
-        └── BumaoXTGL_Minimal_v01.py
+│   └── bumao_core/          ← 已随本仓内置（源头为 bumao-core 仓）
+├── 10_rac/
+│   └── BumaoXTGL_Minimal_v01.py
+└── 20_view/
 ```
 
-即：`bumao-xtgl-minimal/10_rac/../../kernel/bumao_core` 必须存在。
-
-可选的内嵌方式：把 `bumao_core/` 放到本仓根目录下的 `kernel/bumao_core/`，并把入口脚本中查找内核的那一行从 `("..", "..", "kernel", "bumao_core")` 改成 `("..", "kernel", "bumao_core")`。改动后请重新跑一次自检。
+内核只有一份源头：`bumao-core` 仓。内核更新时，用 `bumao-core` 的 `bumao_core/` **整目录覆盖**本仓 `kernel/bumao_core/`，不做逐文件合并；覆盖后比对哈希是否一致即可。
 
 ## 30 秒跑起来
 

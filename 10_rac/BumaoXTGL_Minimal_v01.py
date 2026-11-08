@@ -24,8 +24,8 @@ import os, sys, re, json
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = HERE  # HX/minimal/10_rac
 
-# Insert kernel path for bumao_core import
-_kernel_dir = os.path.abspath(os.path.join(HERE, "..", "..", "kernel", "bumao_core"))
+# Insert kernel path for bumao_core import（内核已内嵌：本仓根目录 kernel/bumao_core）
+_kernel_dir = os.path.abspath(os.path.join(HERE, "..", "kernel", "bumao_core"))
 sys.path.insert(0, _kernel_dir)
 sys.path.insert(0, HERE)
 
@@ -178,9 +178,9 @@ def _rd(path):
 try:
     import engine as core
 except ImportError:
-    sys.stderr.write("[FATAL] missing gate kernel: no engine.py under ../../kernel/bumao_core "
-            "(relative to this file). This edition ships without the gate kernel; mount it per "
-            "HOST_CONTRACT.md (A9: kernel + entry hygiene), then re-run. exit=2" + chr(10))
+    sys.stderr.write("[FATAL] missing gate kernel: no engine.py under ../kernel/bumao_core "
+            "(relative to this file). This edition ships with the kernel inside the repo; "
+            "restore kernel/bumao_core from the bumao-core repo (whole-directory overwrite), then re-run. exit=2" + chr(10))
     sys.exit(2)
 core.configure(rules_db_module=rdb)
 
