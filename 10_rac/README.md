@@ -81,7 +81,7 @@ runtime deps (you may add optional ones there).
 # 1. render the derived views from the JSON source
 python render.py write
 
-# 2. run the strict gate suite -- it must print ALL PASS (27 gates)
+# 2. run the strict gate suite (27 gates; A10/A13 report missing in the public repo)
 python BumaoXTGL_Minimal_v01.py check --strict
 
 # 3. run the tests (unit + reverse test)
@@ -91,6 +91,11 @@ python tests/test_pretool.py
 python tests/test_render.py
 python tests/test_reverse.py
 ```
+
+The public repository ships no internal approval ledger (`30_taizhang/shenpi_jilu.txt`),
+so **A10** and **A13** (version-change authorisation / authorising quote) report
+**missing** and are treated as **not applicable** here. The gates fail loud rather than
+being handed an empty approval sample; all other gates should be green.
 
 `BumaoXTGL_Minimal_v01.py` commands (the entry point injects this edition's
 `rules_db` adapter, then dispatches to the shared kernel):
