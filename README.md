@@ -1,13 +1,19 @@
 # Bumao XTGL · Minimal
 
+Status: maintenance pause
+状态：维护暂停，稳定可用
+
 ![license](https://img.shields.io/badge/license-Apache--2.0-blue)
 ![python](https://img.shields.io/badge/python-3.12%2B-blue)
 ![rules](https://img.shields.io/badge/rules-0-lightgrey)
 ![checks](https://img.shields.io/badge/checks-28-brightgreen)
 ![runtime](https://img.shields.io/badge/runtime-stdlib%20only-informational)
 
-> **Two version spaces** — the in-app version in `00_meta/meta.json` is `0.10`; the repository release tag is `v0.13`. They are two independent numbering spaces, not the same number.
-> **两个版本空间** — 应用内版本（`00_meta/meta.json`）是 `0.10`；仓库发布 tag 是 `v0.13`。这是两个独立的编号空间，不是同一个数字。
+> **Two version spaces** — the in-app version in `00_meta/meta.json` is `0.10`; the repository release tag is `v0.14`. They are two independent numbering spaces, not the same number.
+> **两个版本空间** — 应用内版本（`00_meta/meta.json`）是 `0.10`；仓库发布 tag 是 `v0.14`。这是两个独立的编号空间，不是同一个数字。
+>
+> **Cold start** — to resume iteration, start from [`RETURN_HERE.md`](RETURN_HERE.md).
+> **冷启动** — 恢复迭代从 [`RETURN_HERE.md`](RETURN_HERE.md) 开始。
 
 Zero-rule skeleton of Bumao XTGL: 28 structural checks, your rules, stdlib only. Start here if you want to write your own rule set.
 
@@ -21,7 +27,7 @@ Zero-rule skeleton of Bumao XTGL: 28 structural checks, your rules, stdlib only.
 ## Quick start (30 seconds)
 
 ```bash
-git clone -b v0.13 https://github.com/Bumao-Ai/Bumao-xtgl-minimal.git
+git clone -b v0.14 https://github.com/Bumao-Ai/Bumao-xtgl-minimal.git
 cd Bumao-xtgl-minimal/10_rac
 python BumaoXTGL_Minimal_v01.py whoami
 python BumaoXTGL_Minimal_v01.py check --strict   # exit code is the verdict
@@ -29,19 +35,19 @@ python BumaoXTGL_Minimal_v01.py check --strict   # exit code is the verdict
 
 Add your rules by dropping chapter files into `10_rac/` and following the loader in `rules_db.py`; `render.py` regenerates the views. `zero_rules` is declared in `00_meta/meta.json`, so the skeleton passes without inventing content.
 
-`v0.13` is the tag this README was released with; see Releases and verify the zip with `SHA256SUMS`.
+`v0.14` is the tag this README was released with; see Releases and verify the zip with `SHA256SUMS`.
 
 ## Proof of work
 
 | Item | Value | Source |
 |---|---|---|
-| Commits at `v0.13` | 9 | `git rev-list --count v0.13` |
+| Commits at `v0.14` | 12 | `git rev-list --count v0.14` |
 | Last commit | 2026-11-08 | `git log -1 --date=short` |
 | Rules | 0 (declared) | `check --strict` → `0 ch / 0 cls (zero_rules declared)` |
 | Check items | 28 | `check --strict` conclusion (`2/28 gates red`) |
 | Reverse cases | 5 | `10_rac/tests/test_reverse.py`; last run 5/5 pass |
 | Defect ledger | 0 real closed items | `30_taizhang/quexian_taizhang.txt` holds 2 sanitized sample rows |
-| Releases | 5 tags, `v0.1` → `v0.13`, all 2026-11-08 | `git tag` |
+| Releases | 6 tags, `v0.1` → `v0.14`, all 2026-11-08 | `git tag` |
 | Changelog | [CHANGELOG.md](CHANGELOG.md) | — |
 
 `A10` and `A13` are red on a public clone by design: they check an approval ledger and a quoted authorization, and this edition ships no approval samples. They are marked *not applicable*, not passed.

@@ -38,5 +38,9 @@ def _normalize_argv(argv):
 
 
 if __name__ == "__main__":
+    try: sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception: pass
+    try: sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception: pass
     sys.argv = _normalize_argv(sys.argv)
     raise SystemExit(main())

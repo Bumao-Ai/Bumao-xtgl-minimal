@@ -4265,4 +4265,8 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
+    try: sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception: pass
+    try: sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception: pass
     raise SystemExit(main())

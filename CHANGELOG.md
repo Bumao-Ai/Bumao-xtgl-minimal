@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.14 — 2026-11-08
+
+本版是功能版：编码修复与启动器兼容。This release ships real behaviour changes: encoding-safe entry points and a portable launcher.
+
+- **编码修复** — `10_rac/BumaoXTGL_Minimal_v01.py`、`20_view/web/serve.py`、`20_view/web/xtgl_core.py` 的 `__main__` 现在对 `stdout`／`stderr` 都做 `reconfigure(encoding="utf-8", errors="replace")`，与内核 `serve.py`／`xtgl_core.py` 同款。改前：控制台在 cp936 或缺少字形时遇到罕见字符会抛 `UnicodeEncodeError` 中断检查；改后：降级为替换字符，继续跑完。Before: a rare glyph could abort the run with `UnicodeEncodeError`. Now: it is replaced instead of raising.
+- **启动器** — `20_view/web/qidong_kongzhitai.bat` 在调用任何解释器之前设置 `PYTHONUTF8=1`／`PYTHONIOENCODING=utf-8`；位置探测顺序改为 `py -3 → python3 → python → python_path.txt`（本地覆盖放在最后），每个候选都用 `-c "import sys"` 实跑，Windows Store 的假 `python.exe`（退出码 9009）被跳过。The launcher probes `py -3 → python3 → python → python_path.txt`, runs each candidate, and rejects the Store stub.
+- **未变** — 0 条生效规则、28 个闸门、应用内版本 `0.10`、目录结构与视图均未改动。Rules, gate count, in-app version and layout are unchanged.
+- **文档与维护状态** — README 顶部加 `Status: maintenance pause`／「状态：维护暂停，稳定可用」；新增 `RETURN_HERE.md` 作为恢复迭代的冷启动入口（先看三样、先动 `CHANGELOG.md`）。README status line and `RETURN_HERE.md` added.
+- **R6／R8 不在本仓** — 本仓没有 `B22` 闸门，反向用例 `10_rac/tests/test_reverse.py` 本来就在沙箱副本上跑（5 例，未改动）。`B22` 的内容哈希划界与 28 例影子副本反向套件属 community／personal，不在本仓虚标。No `B22` here; the 5 reverse cases already run on sandbox copies and are unchanged.
+- **已知红项** — `check --strict` 两次运行均为 `2/28`（`A10`、`A13`，公开仓不发审批册，按设计红）。Known reds: `A10`/`A13` by design.
+
 ## 0.13 — 2026-11-08
 
 本版为口径与结构对齐，并补上内核契约（无新增界面功能）。This release aligns naming and structure and ships the kernel contract; it adds no UI feature.
