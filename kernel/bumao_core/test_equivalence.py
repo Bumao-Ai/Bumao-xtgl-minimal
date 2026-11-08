@@ -53,7 +53,8 @@
     两者分开记，前者绝不写进 pass。
   · 语料为空时 C3 无从判定，不判通过（防空洞绿）。
 
-退出码：0 = 实物判据全绿且反向用例全部被拦住；1 = 其余任何情况。
+退出码：0 = 实物判据全绿且反向用例全部被拦住；1 = 其余任何情况；
+        2 = 环境不满足（必须在 <HX>/kernel/bumao_core 且三端同级检出），不判 PASS/FAIL。
 
 生效：2026-11-04 ｜ 判据改写：2026-11-06
       原版失效项与结论行解析回归另行留档。
@@ -648,8 +649,38 @@ def audit_old_engine(edition, timeout, allow_archived=False):
                overall_verdict(o_out), overall_verdict(n_out), old_kind))
 
 
+def _env_ok():
+    """运行前提：<HX>/kernel/bumao_core 布局 + 三端同级检出。
+
+    返回 (ok, msg)。ok=False 时 main 以退出码 2 结束，不判 PASS/FAIL。
+    根因：本件把 HX 当作「本件上两级」。发布仓布局下 bumao_core 直接在 repo 根，
+    上两级会落到仓外目录，扫到的是别的仓——既有误报 PASS，也有误报 FAIL。
+    """
+    parent = os.path.dirname(HERE)
+    if os.path.basename(parent).lower() != "kernel":
+        return False, (
+            "需要三端同级检出：本件必须位于 <HX>/kernel/bumao_core 布局。\n"
+            "  当前 HERE = %s\n"
+            "  父目录名 = %s（应为 kernel）\n"
+            "  说明：单仓 clone 或发布仓布局下，HX 会指到仓外目录；本件拒绝在此运行。"
+            % (HERE, os.path.basename(parent)))
+    if len(EDITIONS) < 3:
+        return False, (
+            "需要三端同级检出（community／minimal／personal，各含 10_rac 与 20_view）。\n"
+            "  当前 HX = %s\n"
+            "  发现 %d 端：%s\n"
+            "  说明：C1/C2/C3 是三端等价判据，少于三端不判 PASS/FAIL。"
+            % (HX, len(EDITIONS), ", ".join(EDITIONS) or "（无）"))
+    return True, ""
+
+
 def main():
     args = parse_args()
+    ok_env, env_msg = _env_ok()
+    if not ok_env:
+        print("[不可判定] %s" % env_msg)
+        print("退出码 2（环境不满足，不是 PASS/FAIL）")
+        return 2
     selftest_verdict()
 
     editions = list(EDITIONS) if args.edition == "all" else [args.edition]
