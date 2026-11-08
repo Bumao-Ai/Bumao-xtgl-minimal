@@ -53,11 +53,11 @@ Add your rules by dropping chapter files into `10_rac/` and following the loader
 
 ## Roadmap (0.2 — in progress)
 
-1. **执行前约束** — 动手前提交意图，由内核先判。
-2. **执行中监管** — 过程中持续检查，而不是只在结束时判一次。
-3. **执行后审计** — 把操作、依据、结果、异常四者关联成一条可追溯链。
+1. **执行前约束** — 动手前提交意图，由内核先判。设计与沙盒原型已通，**未接入 live**。*（进行中）*
+2. **执行中监管** — 过程中持续检查，而不是只在结束时判一次。设计与沙盒原型已通，**未接入 live**。*（进行中）*
+3. **执行后审计** — 把操作、依据、结果、异常四者关联成一条可追溯链。设计与沙盒原型已通，**未接入 live**。*（进行中）*
 
-Status: **in progress**. Nothing here is claimed as shipped.
+Status: **in progress**。设计与沙盒原型已通，live 尚未接入；本节不声称已交付。
 
 ## Architecture
 
