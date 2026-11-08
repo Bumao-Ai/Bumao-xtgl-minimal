@@ -26,6 +26,8 @@ Iteration is paused; the current release is stable and usable as-is. When work r
 - `00_meta/feature_packs/f02_lishi.json` — `enabled: false`（日志日历，只读面板）；要用再打开。
 - 维护暂停：迭代停了，但已发的代码照常能跑；`serve.py` 不会自动启动，`check --strict` 也不会自己跑。
 - 本仓没有 `check_last.json`，检查不落凭据、不自动改任何文件。
+- 真正的主开关是 `BUMO_JIANCHA_MODE`（监督执行器属 personal／live 树，本仓不随附）：未设或拼错一律按 `off`，不会自启。
+- 该开关置 `enforce` 时，一轮检查会复制基线，实测约 228 MB／1303 文件；`qingli` 默认只 dry-run，400 MB 上限只报警、不删。
 
 ## Touch this file first · 先动这个文件
 

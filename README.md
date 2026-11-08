@@ -22,7 +22,7 @@ Zero-rule skeleton of Bumao XTGL: 28 structural checks, your rules, stdlib only.
 **What it solves** — the cost of building a compliance skeleton from zero.
 
 ![check --strict](docs/screens/check-terminal.png)
-*Real output of `check --strict` on a fresh clone (2/28 red: A10/A13, not applicable without an approval ledger).*
+*Real output of `check --strict` on a fresh clone (2/28 red: A10/A13 — without an approval ledger both are explicitly denied (DENY), so FAIL, not PASS).*
 
 ## Quick start (30 seconds)
 
@@ -51,7 +51,7 @@ Add your rules by dropping chapter files into `10_rac/` and following the loader
 | Releases | 7 tags, `v0.1` → `v0.15`, all 2026-11-08 | `git tag` |
 | Changelog | [CHANGELOG.md](CHANGELOG.md) | — |
 
-`A10` and `A13` are red on a public clone by design: they check an approval ledger and a quoted authorization, and this edition ships no approval samples. They are marked *not applicable*, not passed.
+`A10` and `A13` are red on a public clone by design: they check an approval ledger and a quoted authorization, and this edition ships no approval samples. Without a ledger they are **explicitly denied (DENY)** — the result is FAIL, never PASS. "Red by design" means no same-day authorization credential ships here; it is not a waiver. Older kernels word the detail as "找不到审批册", the current kernel writes "A10 判定=DENY" — both are FAIL.
 
 ## 中文
 
@@ -59,7 +59,7 @@ Add your rules by dropping chapter files into `10_rac/` and following the loader
 - **给谁用**：已有自己的规矩、只要判定引擎与结构的人。
 - **解决什么**：从零搭一套合规骨架的成本。
 
-快速开始沿用上方命令块。`A10／A13` 在公开仓按「不适用」处理：本版不带审批样本，所以它们红着，而不是被算作通过。
+快速开始沿用上方命令块。`A10／A13` 在没有审批册时**显式判拒（DENY）**：本版不带审批样本，所以它们红着，结果是 FAIL 而不是 PASS；「按设计红」只指公开仓不随附当日授权凭据，不等于豁免。旧内核 detail 写「找不到审批册」，新内核写「A10 判定=DENY」，两者都是 FAIL。
 
 ## Roadmap (0.2 — in progress)
 
@@ -86,7 +86,7 @@ flowchart TB
 | Group | Checks | What it proves |
 |---|---|---|
 | Source structure | A1–A11, A13 | loader runs, IDs unique, blocks contiguous, references resolve, no empty clauses, entry compiles |
-| Authorization | A10, A13 | approval ledger and quoted authorization; **not applicable** in the public edition |
+| Authorization | A10, A13 | approval ledger and quoted authorization; without a ledger → explicit **DENY** (FAIL), not a waiver |
 | Kernel gates | G01–G09 | meta present, semver, rule files parse, IDs unique and consistent, clause shape, blocks, references |
 | Views and guards | G10–G16 | views in sync, version injected, render idempotent, L3/L4 guards and adapter behave, reverse fixture detected |
 
