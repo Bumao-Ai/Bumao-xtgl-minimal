@@ -20,7 +20,13 @@ A hard gate with no escape hatch will itself be bypassed on day one ("just turn
 the hook off"). Instead we keep one audited path: after the user explicitly
 authorizes a single call, issue a one-time token; the adapter honors it for that
 one call, consumes it, and appends an audit line. Empty reasons are refused.
+
+Since 0.15 a token can be bound at issue time to the exact tool + payload it was
+authorized for (`tool_name`/`payload`). A bound token is refused for any other
+call, so authorizing one cleanup cannot be spent on a different command inside
+the TTL. Unbound tokens keep the old behaviour for callers that do not bind.
 """
+import hashlib
 import io
 import json
 import os
@@ -49,29 +55,44 @@ def _save(d):
         json.dump(d, f, ensure_ascii=False, indent=1)
 
 
-def issue_token(reason, ttl_seconds=600):
-    """Issue a one-time token. `reason` is mandatory (auditable justification)."""
+def _bind_sha(tool_name, payload):
+    h = hashlib.sha256()
+    h.update((str(tool_name or "") + "\x00" + str(payload or "")).encode("utf-8"))
+    return h.hexdigest()
+
+
+def issue_token(reason, ttl_seconds=600, tool_name=None, payload=None):
+    """Issue a one-time token. `reason` is mandatory (auditable justification).
+
+    Pass `tool_name` and/or `payload` to bind the token to that exact call.
+    """
     if not reason or not str(reason).strip():
         raise ValueError("refusing to issue escape token: a reason is required")
     tok = "ESC-" + uuid.uuid4().hex[:12]
     d = _load()
-    d["tokens"][tok] = {
+    rec = {
         "issued": time.strftime("%Y-%m-%d %H:%M:%S"),
         "expire": time.time() + ttl_seconds,
         "reason": str(reason).strip()[:200],
         "used": False,
     }
+    if tool_name is not None or payload is not None:
+        rec["bind_tool"] = str(tool_name or "")
+        rec["bind_sha"] = _bind_sha(tool_name, payload)
+    d["tokens"][tok] = rec
     _save(d)
     return tok
 
 
-def is_valid(tok):
+def is_valid(tok, tool_name=None, payload=None):
     if not tok:
         return False
     rec = _load()["tokens"].get(tok)
     if not rec or rec.get("used"):
         return False
     if time.time() > rec.get("expire", 0):
+        return False
+    if rec.get("bind_sha") and rec["bind_sha"] != _bind_sha(tool_name, payload):
         return False
     return True
 

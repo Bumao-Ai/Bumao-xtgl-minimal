@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.15 — 2026-11-08
+
+本版是功能版：逃生令牌可按「具体工具＋具体载荷」绑定。This release ships a real security change: escape tokens can be bound to one exact tool + payload.
+
+- **逃生令牌绑定** — `10_rac/pretool/escape.py` 的 `issue_token(reason, ttl_seconds, tool_name=None, payload=None)` 新增可选绑定；`is_valid(tok, tool_name, payload)` 对已绑定令牌校验 `sha256(tool_name + "\0" + payload)`。`10_rac/pretool/core.py` 先算载荷再验令牌，把工具名与载荷一起传入。改前：一枚令牌在 TTL 内可用于任何危险的 exec/write 调用，只要第一次用掉即可；改后：令牌只为签发时点名的那个调用放行，换一条命令则回落到 L3 判定，不匹配不会消耗令牌。Before: a token could be spent on any dangerous call inside its TTL. Now: a bound token only honors the exact tool + payload it was issued for; a mismatch falls back to L3.
+- **向后兼容** — 不传 `tool_name`/`payload` 的调用保持旧行为（不绑定），既有调用方无需改动。Unbound tokens keep the old behaviour.
+- **回归用例** — `10_rac/tests/test_pretool.py` 新增 1 条用例：绑定令牌对另一条命令判拒、对点名命令放行、同令牌重放判拒；实跑 10 cases / 10 pass。Adapter suite is now 10 cases, all passing.
+- **未变** — 0 条生效规则、28 个闸门、应用内版本 `0.10`、内核、目录结构、启动器与视图均未改动。Rules, gate count, in-app version, kernel, layout, launcher and views unchanged.
+- **已知红项** — 干净克隆连续两次运行均为 `2/28`（`A10`、`A13`，公开仓不发审批册，按设计红）。Clean clone: `2/28` on both runs (`A10`/`A13` by design).
+
 ## 0.14 — 2026-11-08
 
 本版是功能版：编码修复与启动器兼容。This release ships real behaviour changes: encoding-safe entry points and a portable launcher.

@@ -53,6 +53,18 @@ def main():
 
     r.case("escape token honors once then consumed", escape_once)
 
+    def escape_bound():
+        # Bound to one exact cleanup: the same token must not open a different command.
+        tok = escape.issue_token("user authorized one cleanup", ttl_seconds=600,
+                                 tool_name="Bash", payload="rm -rf build/")
+        other = decide("Bash", {"command": "format C:"}, escape_token=tok)
+        first = decide("Bash", {"command": "rm -rf build/"}, escape_token=tok)
+        again = decide("Bash", {"command": "rm -rf build/"}, escape_token=tok)
+        return (not other["allow"] and first["allow"] and not again["allow"],
+                "other=%s bound=%s replay=%s" % (other["allow"], first["allow"], again["allow"]))
+
+    r.case("bound escape token refuses other payloads", escape_bound)
+
     def empty_reason_refused():
         try:
             escape.issue_token("")

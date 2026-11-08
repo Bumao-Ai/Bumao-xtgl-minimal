@@ -86,14 +86,16 @@ def decide(tool_name, tool_input=None, authorized=(), escape_token=None,
         return {"allow": True, "decision": "allow", "tier": "read",
                 "reason": "read-only tool allowed (does not pass L3)", "hits": []}
 
+    payload = _payload_text(tool_name, tool_input)
     if escape_token:
         from . import escape
-        if escape.is_valid(escape_token):
-            escape.consume(escape_token, tool_name, _payload_text(tool_name, tool_input))
+        # A bound token only matches the exact tool + payload it was issued for;
+        # a mismatch falls through to L3 instead of silently honoring the token.
+        if escape.is_valid(escape_token, tool_name, payload):
+            escape.consume(escape_token, tool_name, payload)
             return {"allow": True, "decision": "allow", "tier": tier,
                     "reason": "audited one-time escape token honored and consumed", "hits": []}
 
-    payload = _payload_text(tool_name, tool_input)
     try:
         og.enforce(payload, authorized=tuple(authorized),
                    source="%s:%s" % (source, tool_name))
