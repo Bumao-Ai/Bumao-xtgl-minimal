@@ -6,6 +6,9 @@
 ![checks](https://img.shields.io/badge/checks-28-brightgreen)
 ![runtime](https://img.shields.io/badge/runtime-stdlib%20only-informational)
 
+> **Two version spaces** — the in-app version in `00_meta/meta.json` is `0.10`; the repository release tag is `v0.13`. They are two independent numbering spaces, not the same number.
+> **两个版本空间** — 应用内版本（`00_meta/meta.json`）是 `0.10`；仓库发布 tag 是 `v0.13`。这是两个独立的编号空间，不是同一个数字。
+
 Zero-rule skeleton of Bumao XTGL: 28 structural checks, your rules, stdlib only. Start here if you want to write your own rule set.
 
 **What it is** — the smallest edition: structure and verdict engine, no rules.
