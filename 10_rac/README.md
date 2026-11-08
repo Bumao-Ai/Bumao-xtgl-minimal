@@ -67,7 +67,7 @@ Bumao XTGL Minimal addresses all three:
 No install needed. Clone and run:
 
 ```bash
-git clone https://github.com/<your-user>/bumao-xtgl-minimal.git
+git clone -b v0.11 https://github.com/Bumao-Ai/bumao-xtgl-minimal.git
 cd bumao-xtgl-minimal
 python --version        # needs 3.12+
 ```
