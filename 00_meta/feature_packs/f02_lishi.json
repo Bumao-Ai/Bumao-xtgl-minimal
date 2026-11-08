@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "id": "f02_lishi",
+  "name": "日志日历",
+  "name_en": "Log calendar",
+  "enabled": false,
+  "capabilities": ["evidence"],
+  "applies_to": ["personal", "community", "minimal"],
+  "note": "按天查看留档与工作日志；不改任何文件，只多一块只读面板"
+}

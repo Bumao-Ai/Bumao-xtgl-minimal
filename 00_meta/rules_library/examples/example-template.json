@@ -1,0 +1,24 @@
+{
+  "id": "example-template",
+  "name": "示例包（模板，永不自动启用）",
+  "name_en": "Example pack (template, never auto-enabled)",
+  "applies_to": [
+    "personal",
+    "community",
+    "minimal"
+  ],
+  "depends_on": [
+    "rules"
+  ],
+  "enabled": false,
+  "rules": [
+    {
+      "id": "example-001",
+      "action": "remind",
+      "scope": "self",
+      "params": {},
+      "desc": "只演示字段形状；params 留空，阈值由用户自填。"
+    }
+  ],
+  "note": "复制到 packs/ 改名，再按 README 六步挂载；放在 examples/ 时不参与生效计数。"
+}

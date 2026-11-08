@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "name": "XTGL 演示工作区",
+  "short": "DEMO",
+  "version": "0.1",
+  "effective": "2026-11-02",
+  "nature": "合成数据 · 仅用于体验控制台",
+  "level": "演示"
+}

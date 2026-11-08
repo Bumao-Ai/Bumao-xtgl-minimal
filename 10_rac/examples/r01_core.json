@@ -1,0 +1,51 @@
+{
+ "ch": 1,
+ "file": "v01_core.txt",
+ "chapter_title": "1. Core Principles",
+ "pre": [
+  "These clauses are the reference template. Replace them with your own rules; the machinery does the rest."
+ ],
+ "clauses": [
+  {
+   "id": "1.1",
+   "root": "1.1",
+   "title": "1.1 Single source of truth: the rules/r*.json files are the only authority. Every file under views/ is derived and must never be hand-edited.",
+   "body": []
+  },
+  {
+   "id": "1.2",
+   "root": "1.2",
+   "title": "1.2 Idempotency: rendering twice produces byte-identical output. The version number lives only in meta.json; any hardcoded version text in a view is a gate failure.",
+   "body": []
+  },
+  {
+   "id": "1.3",
+   "root": "1.3",
+   "title": "1.3 Default deny: a capability or tool name that is not explicitly registered in the whitelist is refused, not allowed-by-default.",
+   "body": []
+  },
+  {
+   "id": "1.4",
+   "root": "1.4",
+   "title": "1.4 Fail loud: a gate that cannot prove a property must report red. A skipped or errored check is a failure, never a silent green.",
+   "body": []
+  },
+  {
+   "id": "1.5",
+   "root": "1.5",
+   "title": "1.5 No private facts: shipped rules carry no credentials, personal data, secrets, or machine-specific absolute paths.",
+   "body": []
+  },
+  {
+   "id": "1.6",
+   "root": "1.6",
+   "title": "1.6 Everything is mandatory: a clause phrased as suggest / consider / prefer / may is enforced as MUST unless that clause declares its own opt-out decided by the operator.",
+   "body": [
+    "(1) No exemption: delivery pressure, disk pressure, battery level or context budget never exempts a clause. When a clause truly cannot be met, stop and ask the operator first, then record the clause id, the reason and the operator's own words in the run log.",
+    "(2) Decidable: every mandatory clause needs a judgeable criterion a machine can evaluate - a gate, a file existence check, a field value, a read-back result, a process or port state. A clause with adjectives only counts as not landed.",
+    "(3) Machine trigger: anything machine-checkable becomes a gate or a periodic item, so the machine speaks up at start-up instead of relying on self-discipline. Client-side schedulers must never stand in for a gate.",
+    "(4) Consequence: violating a mandatory clause fails the current round and must be written into the defect ledger. 'Will be careful next time' is not a closure."
+   ]
+  }
+ ]
+}

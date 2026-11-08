@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "id": "f01_jieru",
+  "name": "接入名册",
+  "name_en": "Client roster",
+  "enabled": false,
+  "capabilities": ["clients"],
+  "applies_to": ["personal", "community", "minimal"],
+  "note": "把日志 who 列汇总成接入名册；不改任何文件，只多一块只读面板"
+}

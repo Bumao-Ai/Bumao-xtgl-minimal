@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="favicon.png">
+<title>新手教程 · Bumao XTGL</title>
+<style>
+:root{
+  --fs-zoom:1.12;
+  --paper:#F3EEE3; --paper-2:#FBF8F1; --ink:#2B2620; --ink-2:#5B564E;
+  --celadon:#6F9C8F; --cinnabar:#B5495B; --dai:#3C4A5A; --ochre:#A8642F; --gold:#D9C9A8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--paper);color:var(--ink);
+  font-family:"DengXian","等线","Microsoft YaHei","PingFang SC",system-ui,sans-serif;
+  line-height:1.75;padding:0 28px 60px;
+  background-image:radial-gradient(circle at 10% 0%, rgba(217,201,168,.22), transparent 46%);}
+.top{position:sticky;top:0;z-index:9;background:rgba(243,238,227,.94);backdrop-filter:blur(8px);
+  border-bottom:1px solid #E3D7BE;margin:0 -28px 0;padding:14px 28px;
+  display:flex;align-items:center;gap:12px}
+.top img{width:34px;height:34px;border-radius:9px}
+.top b{font-size:15px;letter-spacing:2px}
+.top .sp{flex:1}
+.top a,.top button{font-size:12.5px;color:var(--dai);text-decoration:none;border:1px solid var(--gold);
+  background:transparent;padding:5px 12px;border-radius:4px;cursor:pointer;font-family:inherit}
+.top a:hover,.top button:hover{background:#F1E9D8}
+.wrap{max-width:1080px;margin:0 auto;display:grid;grid-template-columns:210px 1fr;gap:38px}
+nav{position:sticky;top:84px;align-self:start;padding-top:26px}
+nav h4{font-size:11px;letter-spacing:2px;color:var(--ink-2);margin-bottom:10px;font-weight:600}
+nav a{display:block;font-size:13px;color:var(--ink-2);text-decoration:none;padding:5px 0;
+  border-left:2px solid transparent;padding-left:12px;transition:.15s}
+nav a:hover{color:var(--ink);border-left-color:var(--gold)}
+main{padding-top:26px;min-width:0}
+h1{font-size:30px;letter-spacing:2px;font-weight:700;margin-bottom:8px}
+.lead{color:var(--ink-2);font-size:14px;margin-bottom:26px;max-width:64ch}
+h2{font-size:19px;letter-spacing:1px;margin:40px 0 8px;padding-bottom:10px;
+  border-bottom:1px solid #E3D7BE;display:flex;align-items:baseline;gap:10px}
+h2 .no{font-size:11px;color:var(--ochre);letter-spacing:1px;font-family:Consolas,monospace}
+h3{font-size:14px;margin:20px 0 6px;color:var(--dai)}
+p{font-size:13.5px;color:var(--ink-2);margin:10px 0}
+strong{color:var(--ink)}
+.card{background:var(--paper-2);border:1px solid #E6DCC8;border-left:3px solid var(--celadon);
+  border-radius:8px;padding:18px 20px;margin:16px 0;
+  box-shadow:0 1px 2px rgba(43,38,32,.04),0 10px 26px rgba(43,38,32,.03)}
+.card h3{margin-top:0}
+.steps{counter-reset:s;margin:14px 0}
+.step{display:grid;grid-template-columns:30px 1fr;gap:12px;padding:10px 0;border-bottom:1px dashed #E8DFCC}
+.step:last-child{border-bottom:0}
+.step::before{counter-increment:s;content:counter(s);width:26px;height:26px;border-radius:50%;
+  background:var(--dai);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px}
+.step b{display:block;font-size:13.5px;color:var(--ink)}
+.step span{font-size:12.5px;color:var(--ink-2)}
+code{font-family:Consolas,"Cascadia Mono",monospace;font-size:12px;background:#EFE8D9;
+  padding:2px 6px;border-radius:3px;color:#4A443B}
+pre{background:#242019;color:#E9E2D3;border-radius:6px;padding:14px 16px;overflow:auto;
+  font-family:Consolas,monospace;font-size:12.5px;line-height:1.7;margin:12px 0}
+pre .c{color:#9C937F}
+table{width:100%;border-collapse:collapse;font-size:13px;margin:12px 0}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid #E8DFCC;vertical-align:top}
+th{font-size:12px;color:var(--ink-2);border-bottom:2px solid var(--gold);font-weight:600}
+.note{background:#FBF3E6;border-left:3px solid var(--ochre);padding:10px 14px;border-radius:4px;
+  font-size:12.5px;color:#6B4A2A;margin:12px 0}
+.ok{color:#3F6B5F;font-weight:600}.bad{color:var(--cinnabar);font-weight:600}
+.kbd{font-size:12px;border:1px solid #D8CBB2;border-bottom-width:2px;border-radius:4px;padding:1px 6px;background:#FBF8F1}
+.foot{margin-top:50px;padding-top:18px;border-top:1px solid #E3D7BE;color:var(--ink-2);
+  font-size:11.5px;text-align:center;letter-spacing:.3px}
+.lang-en{display:none}
+body.en .lang-zh{display:none}
+body.en .lang-en{display:block}
+/* pre 里的标签按行内切换，避免整块换行 */
+pre .lang-en,pre .lang-zh{display:none}
+body.en pre .lang-en{display:inline}
+body:not(.en) pre .lang-zh{display:inline}
+/* 顶栏这类行内位置单独用一套 */
+.hd-en{display:none}
+body.en .hd-zh{display:none}
+body.en .hd-en{display:inline}
+/* 页脚与链接内的语言切换保持行内 */
+.foot .lang-en,.foot .lang-zh,a .lang-en,a .lang-zh{display:inline}
+body.en .foot .lang-zh,body.en a .lang-zh{display:none}
+@media (max-width:820px){
+  .wrap{grid-template-columns:1fr}
+  nav{position:static;padding-top:10px;display:flex;flex-wrap:wrap;gap:4px 12px}
+  nav h4{width:100%}
+}
+
+/* ── 字号增强（2026-11-03 用户反馈：控制台文字太小，全局上调一档）──
+   2026-11-08 Q011：本页补同 index.html 的增强块，与 index／setup 一致 */
+body{font-size:calc(15px * var(--fs-zoom))}
+h1{font-size:calc(32px * var(--fs-zoom))}
+.lead,p{font-size:calc(15px * var(--fs-zoom))}
+h2{font-size:calc(20px * var(--fs-zoom))}
+h3{font-size:calc(14.5px * var(--fs-zoom))}
+.top b{font-size:calc(16px * var(--fs-zoom))}
+.top a,.top button{font-size:calc(13px * var(--fs-zoom))}
+nav h4{font-size:calc(12px * var(--fs-zoom))}
+nav a{font-size:calc(14px * var(--fs-zoom))}
+.step b{font-size:calc(14.5px * var(--fs-zoom))}
+.step span{font-size:calc(13.5px * var(--fs-zoom))}
+code{font-size:calc(13px * var(--fs-zoom))}
+pre{font-size:calc(13.5px * var(--fs-zoom))}
+table{font-size:calc(14.5px * var(--fs-zoom))}
+th{font-size:calc(13px * var(--fs-zoom))}
+.note{font-size:calc(13.5px * var(--fs-zoom))}
+.foot{font-size:calc(12.5px * var(--fs-zoom))}
+</style>
+</head>
+<body>
+<div class="top">
+  <img src="favicon.png" alt="">
+  <b>Bumao XTGL</b>
+  <span style="font-size:12px;color:var(--ink-2)"><span class="hd-zh">新手教程</span><span class="hd-en">Beginner’s guide</span></span>
+  <span class="sp"></span>
+  <a href="/"><span class="hd-zh">← 回控制台</span><span class="hd-en">← Back to console</span></a>
+  <button id="langBtn" onclick="setLang()">EN</button>
+</div>
+
+<div class="wrap">
+  <nav>
+    <h4 class="lang-zh">目录</h4><h4 class="lang-en">Contents</h4>
+    <a href="#what" class="lang-zh">0 · 它是什么</a><a href="#what" class="lang-en">0 · What it is</a>
+    <a href="#prep" class="lang-zh">1 · 准备工作</a><a href="#prep" class="lang-en">1 · Preparation</a>
+    <a href="#start" class="lang-zh">2 · 第一次启动</a><a href="#start" class="lang-en">2 · First start</a>
+    <a href="#wizard" class="lang-zh">3 · 首次向导</a><a href="#wizard" class="lang-en">3 · First-run wizard</a>
+    <a href="#ui" class="lang-zh">4 · 主界面</a><a href="#ui" class="lang-en">4 · Main page</a>
+    <a href="#rules" class="lang-zh">5 · 规则</a><a href="#rules" class="lang-en">5 · Rules</a>
+    <a href="#packs" class="lang-zh">5b · 功能与规则怎么开</a><a href="#packs" class="lang-en">5b · Features & rules</a>
+    <a href="#addon" class="lang-zh">5c · 怎么加一个功能</a><a href="#addon" class="lang-en">5c · Add a feature</a>
+    <a href="#tasks" class="lang-zh">6 · 任务与留档</a><a href="#tasks" class="lang-en">6 · Tasks & records</a>
+    <a href="#goals" class="lang-zh">7 · 长期目标</a><a href="#goals" class="lang-en">7 · Long-term goals</a>
+    <a href="#manual" class="lang-zh">8 · 人工判定</a><a href="#manual" class="lang-en">8 · Manual checks</a>
+    <a href="#faq" class="lang-zh">9 · 常见问题</a><a href="#faq" class="lang-en">9 · FAQ</a>
+    <a href="#safe" class="lang-zh">10 · 边界与卸载</a><a href="#safe" class="lang-en">10 · Boundaries</a>
+  </nav>
+
+  <main>
+    <h1 class="lang-zh">从零开始，把控制台跑起来</h1>
+    <h1 class="lang-en">Start from zero</h1>
+    <p class="lead lang-zh">这份教程假设你从没装过。按顺序做，每一步都有验收方式；全程不需要联网，不需要 pip，也不需要 Node.js。</p>
+    <p class="lead lang-en">This assumes a fresh machine. Follow the steps in order; each has a way to verify. No internet, no pip, no Node.js.</p>
+
+    <!-- 0 -->
+    <h2 id="what"><span class="no">00</span><span class="lang-zh">它是什么</span><span class="lang-en">What it is</span></h2>
+    <p class="lang-zh">控制台是一个<strong>本地网页</strong>：电脑上跑一个小服务，浏览器打开 <code>127.0.0.1:端口</code> 就能看项目状态。它不是云服务，断网也能用；除了首次向导写配置、建任务，它不修改你的项目。</p>
+    <p class="lang-en">It is a <strong>local web page</strong>: a small service runs on your machine and the browser shows project status. It is not a cloud service and works offline. Except for the wizard writing config or creating a task, it does not modify your project.</p>
+
+    <!-- 1 -->
+    <h2 id="prep"><span class="no">01</span><span class="lang-zh">准备工作</span><span class="lang-en">Preparation</span></h2>
+    <div class="steps">
+      <div class="step"><div><b class="lang-zh">确认 Python 3.12.14</b><b class="lang-en">Check Python 3.12.14</b><span class="lang-zh">终端执行 <code>python --version</code>；提示找不到就安装并勾选 Add Python to PATH。</span><span class="lang-en">Run <code>python --version</code>; if missing, install and tick “Add Python to PATH”.</span></div></div>
+      <div class="step"><div><b class="lang-zh">找到控制台目录</b><b class="lang-en">Find the console folder</b><span class="lang-zh">通常在仓库的 <code>20_view/web/</code>，里面有 <code>serve.py</code>、<code>index.html</code>、<code>web_config.json</code>。</span><span class="lang-en">Usually <code>20_view/web/</code>, containing <code>serve.py</code>, <code>index.html</code>, <code>web_config.json</code>.</span></div></div>
+    </div>
+    <div class="note lang-zh">如果你机器上的 <code>python</code> 是应用商店的占位程序（运行就提示去安装），启动器会自动寻找真实解释器；也可以自己把 Python 加进 PATH。</div>
+    <div class="note lang-en">If <code>python</code> is the Microsoft Store stub, the launcher looks for a real interpreter automatically. You can also add Python to PATH.</div>
+
+    <!-- 2 -->
+    <h2 id="start"><span class="no">02</span><span class="lang-zh">第一次启动</span><span class="lang-en">First start</span></h2>
+    <pre class="lang-zh">cd &lt;仓库&gt;\20_view\web
+python serve.py</pre>
+    <pre class="lang-en">cd &lt;repo&gt;\20_view\web
+python serve.py</pre>
+    <p class="lang-zh">看到下面这段就成功了。浏览器会自动打开（优先 Chrome）；没弹出就手动粘地址。</p>
+    <p class="lang-en">When you see this, it works. The browser opens automatically (Chrome preferred).</p>
+    <pre>========================================================
+ Bumao XTGL · <span class="lang-zh">控制台</span><span class="lang-en">console</span>
+ <span class="lang-zh">页面</span><span class="lang-en">Page</span> <span id="ttUrl"><span class="lang-zh">http://127.0.0.1/&lt;端口&gt;/</span><span class="lang-en">http://127.0.0.1/&lt;port&gt;/</span></span>
+ <span class="lang-zh">项目根</span><span class="lang-en">Project root</span> …\HX\community
+ <span class="lang-zh">内核</span><span class="lang-en">Core</span> <span id="ttVer"><span class="lang-zh">&lt;内核版本&gt;</span><span class="lang-en">&lt;core version&gt;</span></span> · Python <span id="ttPy"><span class="lang-zh">&lt;版本&gt;</span><span class="lang-en">&lt;version&gt;</span></span>
+ <span class="lang-zh">浏览器</span><span class="lang-en">Browser</span> Chrome
+ Ctrl+C <span class="lang-zh">退出</span><span class="lang-en">to quit</span>
+========================================================</pre>
+    <div class="note lang-zh">Windows 也可以双击 <code>qidong_kongzhitai.bat</code>。端口被占用会自动向后找 40 个，以终端打印的地址为准。</div>
+    <div class="note lang-en">On Windows you can double-click <code>qidong_kongzhitai.bat</code>. If the port is busy it scans up to 40 ports; trust the printed URL.</div>
+
+    <!-- 3 -->
+    <h2 id="wizard"><span class="no">03</span><span class="lang-zh">首次向导</span><span class="lang-en">First-run wizard</span></h2>
+    <p class="lang-zh">没有项目时页面不会空白，会显示「首次运行」。点「打开首次向导」，或直接访问 <code>/setup</code>。</p>
+    <div class="card">
+      <h3 class="lang-zh">四步</h3><h3 class="lang-en">Four steps</h3>
+      <div class="steps">
+        <div class="step"><div><b class="lang-zh">选目录</b><b class="lang-en">Choose folder</b><span class="lang-zh">已有项目填根目录（含 <code>00_meta/meta.json</code>）；没有就填空目录并勾「新建工作区」。</span><span class="lang-en">Existing project: its root (with <code>00_meta/meta.json</code>). New: an empty folder + “New workspace”.</span></div></div>
+        <div class="step"><div><b class="lang-zh">检环境</b><b class="lang-en">Check environment</b><span class="lang-zh">Python、元信息、引擎、规则层、写权限逐项判定；红色必修，黄色可继续。</span><span class="lang-en">Python, metadata, engine, rule layers, write access. Red must be fixed; yellow may continue.</span></div></div>
+        <div class="step"><div><b class="lang-zh">设规则层</b><b class="lang-en">Rule layers</b><span class="lang-zh">core / default / user 三个目录，默认层必填，另两层可留空。</span><span class="lang-en">core / default / user folders; default required, others optional.</span></div></div>
+        <div class="step"><div><b class="lang-zh">建首任务</b><b class="lang-en">First task</b><span class="lang-zh">可选。会在 <code>任务目录/</code> 下生成一份留档骨架。</span><span class="lang-en">Optional. Creates a record skeleton under <code>tasks/</code>.</span></div></div>
+      </div>
+    </div>
+    <p class="lang-zh"><strong>验收</strong>：页面顶部出现项目根，各卡片有数据，没有红色报错。</p>
+    <p class="lang-en"><strong>Verify</strong>: the project root appears and cards have data, with no red errors.</p>
+
+    <!-- 4 -->
+    <h2 id="ui"><span class="no">04</span><span class="lang-zh">主界面怎么读</span><span class="lang-en">Reading the main page</span></h2>
+    <table>
+      <tr><th class="lang-zh">卡片</th><th class="lang-en">Card</th><th class="lang-zh">看什么</th><th class="lang-en">What to look at</th></tr>
+      <tr><td class="lang-zh">项目元信息</td><td class="lang-en">Project info</td><td class="lang-zh">版本、名称、性质，来自 meta.json</td><td class="lang-en">version/name/nature from meta.json</td></tr>
+      <tr><td class="lang-zh">闸门自检</td><td class="lang-en">Gate check</td><td class="lang-zh">点按钮真实跑引擎；绿=ALL PASS</td><td class="lang-en">runs the real engine; green = ALL PASS</td></tr>
+      <tr><td class="lang-zh">规则条款</td><td class="lang-en">Rules</td><td class="lang-zh">三层合并结果，点一行展开</td><td class="lang-en">merged layers; click to expand</td></tr>
+      <tr><td class="lang-zh">模块</td><td class="lang-en">Modules</td><td class="lang-zh">模块清单与版本兼容</td><td class="lang-en">module list and compatibility</td></tr>
+      <tr><td class="lang-zh">长期目标</td><td class="lang-en">Goals</td><td class="lang-zh">目标、进度、关联项目，可导出</td><td class="lang-en">goals, progress, projects; exportable</td></tr>
+      <tr><td class="lang-zh">人工判定</td><td class="lang-en">Manual checks</td><td class="lang-zh">机器算不了的项，人来画勾</td><td class="lang-en">tick what machines cannot judge</td></tr>
+      <tr><td class="lang-zh">任务留档</td><td class="lang-en">Tasks</td><td class="lang-zh">每个任务有没有留档</td><td class="lang-en">whether each task has a record</td></tr>
+    </table>
+    <p class="lang-zh">首屏走 <code>?fast=1</code>，不跑闸门（毫秒级）；闸门必须手动点，避免页面卡十几秒。页面每 10 秒自动刷新一次，后台时暂停。</p>
+    <p class="lang-en">First paint uses <code>?fast=1</code> and skips the gate (milliseconds). Run it manually. The page auto-refreshes every 10s and pauses when hidden.</p>
+
+    <!-- 5 -->
+    <h2 id="rules"><span class="no">05</span><span class="lang-zh">规则怎么写</span><span class="lang-en">Writing rules</span></h2>
+    <pre class="lang-zh">{
+  "ch": 1,
+  "file": "r01_default.json",
+  "chapter_title": "1. 默认规则",
+  "clauses": [
+    {"id": "1.1", "root": "1.1", "title": "1.1 改动前先备份",
+     "body": ["覆盖写之前，同目录留一份带时间戳的 .bak。"]}
+  ]
+}</pre>
+    <pre class="lang-en">{
+  "ch": 1,
+  "file": "r01_default.json",
+  "chapter_title": "1. Default rules",
+  "clauses": [
+    {"id": "1.1", "root": "1.1", "title": "1.1 Back up before overwriting",
+     "body": ["Before overwriting, keep a timestamped .bak in the same folder."]}
+  ]
+}</pre>
+    <p class="lang-zh">合并优先级固定：<strong>core（不可覆盖） &gt; default &gt; user</strong>。用户层与内核层同编号时会被拒绝并在页面顶部报告。改完刷新即可，不用重启。</p>
+    <p class="lang-en">Merge order: <strong>core (not overridable) &gt; default &gt; user</strong>. A user clause colliding with a core id is rejected and reported. Refresh after editing.</p>
+
+    <!-- 5b -->
+    <h2 id="packs"><span class="no">05b</span><span class="lang-zh">三端差异 · 功能与规则怎么开</span><span class="lang-en">Editions · turning features and rules on</span></h2>
+    <p class="lang-zh">三端是同一份代码，差异只在 <code>web_config.json</code>：<code>capabilities</code> 决定开哪些面板，<code>rules</code> 决定挂哪层规则。<span data-end="personal">personal</span> 5 页、<span data-end="community">community</span> 3 页、<span data-end="minimal">minimal</span> 1 页。</p>
+    <p class="lang-en">All three editions share one codebase. Only <code>web_config.json</code> differs: <code>capabilities</code> picks panels, <code>rules</code> picks layers. <span data-end="personal">Personal</span> 5 pages, <span data-end="community">Community</span> 3, <span data-end="minimal">Minimal</span> 1.</p>
+
+    <h3 class="lang-zh">打开一个功能</h3><h3 class="lang-en">Turn a feature on</h3>
+    <p class="lang-zh">把能力 id 加进 <code>capabilities</code> 数组，重启 <code>serve.py</code>。例如加 <code>"clients"</code> 就出现接入名册；不加就永远不采数、不显示。</p>
+    <p class="lang-en">Add a capability id to <code>capabilities</code> and restart <code>serve.py</code>. Without it the panel never loads or shows.</p>
+
+    <h3 class="lang-zh">加一条规则</h3><h3 class="lang-en">Add a rule</h3>
+    <p class="lang-zh">默认层直接往 <code>10_rac/zhunze/</code>（极简端是 <code>10_rac/rules/</code>）放条款 JSON；不想动真身就用规则包：<code>00_meta/rules_library/packs/</code> 一个 JSON 一个包，<code>"enabled": true</code> 才生效。</p>
+    <p class="lang-en">Drop a clause JSON into <code>10_rac/zhunze/</code> (<code>10_rac/rules/</code> for Minimal), or use a pack under <code>00_meta/rules_library/packs/</code>; a pack works only when <code>"enabled": true</code>.</p>
+
+    <h3 class="lang-zh">放一个功能包</h3><h3 class="lang-en">Drop a feature pack</h3>
+    <p class="lang-zh">往 <code>00_meta/feature_packs/</code> 放一个 JSON，写 <code>capabilities</code> 与 <code>applies_to</code>，<code>"enabled": true</code> 重启即加载；改回 false 面板立刻消失，数据不动。现成两个包：<code>f01_jieru</code>（接入名册）、<code>f02_lishi</code>（日志日历）。</p>
+    <p class="lang-en">Place a JSON in <code>00_meta/feature_packs/</code> with <code>capabilities</code> and <code>applies_to</code>; set <code>"enabled": true</code> and restart. Two ready packs: <code>f01_jieru</code>, <code>f02_lishi</code>.</p>
+
+    <div class="note lang-zh">日志是四层：<strong>当天 → 时间 → 项目 → 客户端</strong>。四层缺一层，日志就不完整。</div>
+    <div class="note lang-en">Logs render in four layers: <strong>day → time → project → client</strong>.</div>
+
+    <!-- 5c -->
+    <h2 id="addon"><span class="no">05c</span><span class="lang-zh">怎么从零加一个功能</span><span class="lang-en">Adding a feature from scratch</span></h2>
+    <p class="lang-zh">加功能不是只改页面。要按「能力位 → 后端 → 前端 → 包 → 自证」五步走，少一步就会出现「开关打开却空白」。</p>
+    <p class="lang-en">A feature is not just a page change. Follow five steps: capability entry, backend, frontend, packs, verification.</p>
+
+    <h3 class="lang-zh">第一步：加能力位</h3><h3 class="lang-en">Step one: add a capability entry</h3>
+    <p class="lang-zh">在 <code>20_view/web/modules.json</code> 的 <code>modules</code> 数组里加一条，字段照现有条目抄齐：<code>id</code>、<code>name</code>、<code>name_en</code>、<code>version</code>、<code>core</code>、<code>min_core</code>、<code>kind</code>、<code>status</code>、<code>group</code>、<code>source</code>、<code>permission</code>、<code>write</code>、<code>credential</code>、<code>evidence</code>、<code>review_by</code>、<code>desc</code>。这张表是各发行版共用定义，须与上游字节一致；本版要不要开，不在这里写，写到本版 <code>web_config.json</code> 的 <code>capabilities</code>。字段名里没有 <code>applies_to</code>——那是包用的，不是能力位用的。</p>
+    <p class="lang-en">Add an object to <code>modules</code> in <code>20_view/web/modules.json</code> with the same fields as existing entries: <code>id</code>, <code>name</code>, <code>name_en</code>, <code>version</code>, <code>core</code>, <code>min_core</code>, <code>kind</code>, <code>status</code>, <code>group</code>, <code>source</code>, <code>permission</code>, <code>write</code>, <code>credential</code>, <code>evidence</code>, <code>review_by</code>, <code>desc</code>. This table is shared across releases and must match upstream byte-for-byte. Whether an edition enables it belongs in that edition’s <code>web_config.json</code> under <code>capabilities</code>. <code>applies_to</code> is for packs, not capability entries.</p>
+
+    <h3 class="lang-zh">第二步：接后端</h3><h3 class="lang-en">Step two: wire the backend</h3>
+    <p class="lang-zh">只读数据先加进 <code>snapshot</code>，在 <code>xtgl_core.py</code> 的 <code>/api/overview</code> 返回里多一个字段；需要独立查询就加一条 <code>/api/</code> 路由。读用 <code>GET</code>，写用 <code>POST</code>，两者都要过同源校验与 <code>permission</code> 权限位；路由里不许写死本机绝对路径，路径一律从配置解析。返回结构固定为状态码与数据两段，出错给可读原因，不要吞掉。</p>
+    <p class="lang-en">Add read-only data to the <code>snapshot</code> returned by <code>/api/overview</code> in <code>xtgl_core.py</code>, or add a dedicated <code>/api/</code> route. Use <code>GET</code> for reads and <code>POST</code> for writes; both pass origin checks and the <code>permission</code> flag. Never hard-code absolute paths; resolve them from config. Return a status plus data, and surface readable errors instead of swallowing them.</p>
+
+    <h3 class="lang-zh">第三步：挂前端</h3><h3 class="lang-en">Step three: attach the frontend</h3>
+    <p class="lang-zh">卡片编号以 <code>s-</code> 开头，写进 <code>index.html</code> 的 <code>CAP_MAP</code>，映射到第一步的能力位 <code>id</code>；页签不用手工显隐，<code>applyCaps()</code> 会按 <code>capabilities</code> 自动收起未开启的卡片。词条加在 <code>i18n.js</code> 的中英成对条目里，不许在中文句子里拼英文短语，也不许英文句子夹中文。没有数据时补一句空态文案，不要留白面板。</p>
+    <p class="lang-en">Give the card an <code>s-</code> prefixed id, register it in <code>CAP_MAP</code> inside <code>index.html</code>, and map it to the capability <code>id</code> from step one. Do not hand-toggle tabs: <code>applyCaps()</code> hides cards whose capability is off. Add paired Chinese and English strings in <code>i18n.js</code>; never mix languages inside one sentence. Provide an empty-state message when no data exists.</p>
+
+    <h3 class="lang-zh">第四步：加规则包与功能包</h3><h3 class="lang-en">Step four: add rule and feature packs</h3>
+    <p class="lang-zh">规则包放 <code>00_meta/rules_library/packs/</code>，功能包放 <code>00_meta/feature_packs/</code>；一个文件一个包，<code>id</code> 必须与文件名一致。<code>enabled</code> 默认 <code>false</code>，改成 <code>true</code> 才生效。<code>applies_to</code> 只填本发行版名（<code>community</code> 或 <code>minimal</code>）；<code>depends_on</code> 只能引用 <code>modules.json</code> 里已有的能力 <code>id</code>。加载顺序固定：先读能力定义，再按各端 <code>capabilities</code> 开关，最后叠加 <code>enabled</code> 的包；包不能改真身条款，也不能预置天数、份数这类数值。</p>
+    <p class="lang-en">Put rule packs in <code>00_meta/rules_library/packs/</code> and feature packs in <code>00_meta/feature_packs/</code>. One file per pack; the <code>id</code> must match the filename. <code>enabled</code> defaults to <code>false</code>. <code>applies_to</code> accepts only release names (<code>community</code> or <code>minimal</code>). <code>depends_on</code> may reference only capability ids already defined in <code>modules.json</code>. Load order is fixed: capability definitions, then each edition’s <code>capabilities</code>, then enabled packs. Packs must not edit core clauses or preset numeric values.</p>
+
+    <h3 class="lang-zh">第五步：加完怎么自证</h3><h3 class="lang-en">Step five: prove it works</h3>
+    <p class="lang-zh">在本端入口脚本上跑一次严格检查：<code>check --strict</code>（不带 <code>--out</code>；入口脚本名与所在目录见本端 README）。改动核心件后，在本端跑 <code>kernelsync.py --manifest</code> 重算清单。对账点：能力定义与上游字节一致、页面在能力关闭时不出现新面板、打开后能取到真数据、检查结论全绿。任何一项不过，就不要把 <code>enabled</code> 改成 <code>true</code>。</p>
+    <p class="lang-en">Run the strict check on each edition. After touching core files, run <code>kernelsync.py --manifest</code> per edition. Verify: capability definitions match upstream byte-for-byte, the panel stays hidden when its capability is off, real data loads when on, and every check passes. If any item fails, keep <code>enabled</code> at <code>false</code>.</p>
+
+    <!-- 6 -->
+    <h2 id="tasks"><span class="no">06</span><span class="lang-zh">任务与留档</span><span class="lang-en">Tasks & records</span></h2>
+    <p class="lang-zh">每个任务目录至少一份留档，三种文件名都认：<code>benci_gongcheng.txt</code> / <code>renwu_liudang.txt</code> / <code>xiangmu_jilu.txt</code>（或文件名含 <code>liudang</code>）。没有留档会标红。</p>
+    <p class="lang-en">Each task needs at least one record: <code>benci_gongcheng.txt</code> / <code>renwu_liudang.txt</code> / <code>xiangmu_jilu.txt</code> (or any name with <code>liudang</code>). Missing ones are flagged.</p>
+    <div class="note lang-zh">留档三段式：摘要头（日期/执行者/任务/状态/目标）、正文明细、索引尾。执行者写「模型 + 客户端」，不要署用户本人姓名。</div>
+    <div class="note lang-en">A record has three parts: summary header (date/executor/task/status/goal), body, index tail. Write the executor as “model + client”, never the user’s name.</div>
+
+    <!-- 7 -->
+    <h2 id="goals"><span class="no">07</span><span class="lang-zh">长期目标与导出</span><span class="lang-en">Long-term goals & export</span></h2>
+    <p class="lang-zh">目标文件由 <code>web_config.json</code> 的 <code>goals</code> 字段指定，也可以用环境变量 <code>XTGL_GOALS</code> 指向任意路径。仓库里自带 <code>goals.example.txt</code>，复制改一改即可。</p>
+    <p class="lang-en">The goals file is set by <code>goals</code> in <code>web_config.json</code>, or by the <code>XTGL_GOALS</code> environment variable. A sample ships as <code>goals.example.txt</code>.</p>
+    <p class="lang-zh">每个目标用 <code>[G编号]</code> 开头，字段一行一个「键：值」：目标、阶段、状态、进度、关联项目、关联文件、下一步、证据、复核。右上「导出 Markdown」只导索引，不复制项目文件。</p>
+    <p class="lang-en">Each goal starts with <code>[Gx]</code> then key/value lines: goal, stage, status, progress, projects, files, next step, evidence, review date. “Export Markdown” exports the index only.</p>
+
+    <!-- 8 -->
+    <h2 id="manual"><span class="no">08</span><span class="lang-zh">人工判定</span><span class="lang-en">Manual checks</span></h2>
+    <p class="lang-zh">有些判断机器算不了（例如「已人工复核」「已知悉未闭环项」）。页面提供人工勾选，勾选结果写入 <code>manual.json</code>，<strong>只做记录，不改变机器判据</strong>——机器健康仍由闸门和探针决定。</p>
+    <p class="lang-en">Some judgments cannot be computed (e.g. “manually reviewed”, “acknowledged open items”). Tick them on the page; they are stored in <code>manual.json</code> and <strong>do not change machine verdicts</strong>.</p>
+
+    <!-- 9 -->
+    <h2 id="faq"><span class="no">09</span><span class="lang-zh">常见问题</span><span class="lang-en">FAQ</span></h2>
+    <div class="card">
+      <h3 class="lang-zh">双击 .bat 一闪就退</h3><h3 class="lang-en">The .bat flashes and closes</h3>
+      <p class="lang-zh">三种常见原因：Python 不在 PATH、端口被占、默认浏览器起不来。启动器会打印实际解释器和失败原因；先在终端跑 <code>python serve.py</code> 看真实报错。</p>
+      <p class="lang-en">Usually Python not on PATH, port busy, or the browser failing. The launcher prints the interpreter and the error; run <code>python serve.py</code> in a terminal to see it.</p>
+    </div>
+    <div class="card">
+      <h3 class="lang-zh">页面显示「读取失败」</h3><h3 class="lang-en">“Read failed” on the page</h3>
+      <p class="lang-zh">多半是直接双击了 <code>index.html</code>。必须经 <code>serve.py</code> 启动，页面才能调 <code>/api/*</code>。</p>
+      <p class="lang-en">You probably opened <code>index.html</code> directly. It must be served by <code>serve.py</code>.</p>
+    </div>
+    <div class="card">
+      <h3 class="lang-zh">浏览器不是 Chrome / 打不开</h3><h3 class="lang-en">Browser is not Chrome / won’t open</h3>
+      <p class="lang-zh">服务端优先用 Chrome 新窗口打开，找不到才用系统默认。也可以把终端打印的地址粘到任意浏览器。</p>
+      <p class="lang-en">The server prefers Chrome; otherwise it falls back to the default browser. Paste the printed URL anywhere.</p>
+    </div>
+    <div class="card">
+      <h3 class="lang-zh">闸门一直转圈</h3><h3 class="lang-en">The gate spinner never stops</h3>
+      <p class="lang-zh">闸门是真实执行，项目大时要十几秒；首屏不跑闸门，点按钮才跑。</p>
+      <p class="lang-en">It really executes; large projects take seconds. First paint skips it.</p>
+    </div>
+
+    <!-- 10 -->
+    <h2 id="safe"><span class="no">10</span><span class="lang-zh">边界与卸载</span><span class="lang-en">Boundaries & uninstall</span></h2>
+    <p class="lang-zh">只监听 <code>127.0.0.1</code>，不做鉴权，不要暴露到局域网/公网；写接口只接受本机页面；除向导外不修改项目。停止用 <code>Ctrl+C</code>；卸载直接删目录，没有注册表、没有系统服务。</p>
+    <p class="lang-en">Binds to <code>127.0.0.1</code> only; no auth, never expose it. Write endpoints accept local pages only. Stop with <code>Ctrl+C</code>; uninstall by deleting the folder.</p>
+
+    <div class="foot">Bumao XTGL · <span class="lang-zh">新手教程</span><span class="lang-en">Beginner’s guide</span> · 2026-11-02</div>
+    <p style="margin-top:36px;padding-top:18px;border-top:1px solid var(--line,#e6e2d8);font-weight:600">
+      <a href="/">← <span class="lang-zh">回控制台</span><span class="lang-en">Back to console</span></a>
+    </p>
+  </main>
+</div>
+
+<script>
+(function(){
+  /* 与 index 同口径：?lang=zh|en 优先，其次 localStorage；链接里指明语言时写回本地，后续页面沿用 */
+  var q=new URLSearchParams(location.search).get('lang');
+  var en=q==='en'?true:(q==='zh'?false:(localStorage.getItem('xtgl_lang')||'zh')==='en');
+  if(q==='en'||q==='zh') localStorage.setItem('xtgl_lang',q);
+  document.body.classList.toggle('en',en);
+  var btn=document.getElementById('langBtn');
+  btn.textContent=en?'Chinese':'EN';
+  document.documentElement.lang=en?'en':'zh-CN';
+  window.setLang=function(){
+    var toEn=!document.body.classList.contains('en');
+    document.body.classList.toggle('en',toEn);
+    localStorage.setItem('xtgl_lang',toEn?'en':'zh');
+    btn.textContent=toEn?'Chinese':'EN';
+    document.documentElement.lang=toEn?'en':'zh-CN';
+    if(window.applyEndLabels) window.applyEndLabels();
+  };
+})();
+</script>
+<script>
+/* 上面那段启动示例里的页面地址、内核版本、Python 版本改为运行时自填。
+   原因一：本文件是三端字节一致的核心文件，而三端端口各不相同，任何写死的端口都会在其中两端是错的。
+   原因二：写死的内核版本必然随 CORE_VERSION 过期——原来这里写的就是一个已经落后于实际的旧版本号。
+   取不到接口时保持占位符原样，不抛错、不遮挡正文。 */
+(function(){
+  window.applyEndLabels=function(){
+    var en=document.body.classList.contains('en');
+    var labs=window.__END_LABELS||{};
+    var els=document.querySelectorAll('[data-end]');
+    for(var i=0;i<els.length;i++){
+      var r=labs[els[i].getAttribute('data-end')]||{};
+      var v=en?r.en:r.zh;
+      if(v) els[i].textContent=v;
+    }
+  };
+  function put(id, v){ var e=document.getElementById(id); if(e && v) e.textContent=v; }
+  put('ttUrl', location.origin + '/');
+  try{
+    fetch('/api/overview?fast=1').then(function(r){ return r.ok ? r.json() : null; }).then(function(d){
+      if(!d) return;
+      put('ttVer', d.core_version);
+      put('ttPy', d.python);
+      if(d.labels){ window.__END_LABELS=d.labels; window.applyEndLabels(); }
+    }).catch(function(){});
+  }catch(e){}
+})();
+</script>
+</body>
+</html>

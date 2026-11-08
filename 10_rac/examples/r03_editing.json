@@ -1,0 +1,38 @@
+{
+ "ch": 3,
+ "file": "v03_editing.txt",
+ "chapter_title": "3. Editing the Rules",
+ "pre": [],
+ "clauses": [
+  {
+   "id": "3.1",
+   "root": "3.1",
+   "title": "3.1 Change rules only through the block API in edit.py. Never hand-edit files under views/.",
+   "body": []
+  },
+  {
+   "id": "3.2",
+   "root": "3.2",
+   "title": "3.2 After any rule change, run: render, then check --strict. Both must pass before the change is accepted.",
+   "body": []
+  },
+  {
+   "id": "3.3",
+   "root": "3.3",
+   "title": "3.3 A clause cluster (a root clause plus all its children) must stay contiguous. Inserting between a parent and its child is forbidden.",
+   "body": []
+  },
+  {
+   "id": "3.4",
+   "root": "3.4",
+   "title": "3.4 Every clause must carry a real purpose. Placeholder / shell clauses that say nothing are rejected.",
+   "body": []
+  },
+  {
+   "id": "3.5",
+   "root": "3.5",
+   "title": "3.5 Version numbers are bumped only in meta.json. Never edit a version string inside rendered views or clause text.",
+   "body": []
+  }
+ ]
+}

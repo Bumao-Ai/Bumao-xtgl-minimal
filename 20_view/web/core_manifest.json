@@ -1,0 +1,19 @@
+{
+  "core_version": "0.10",
+  "generated": "2026-11-08",
+  "note": "一致性判据：同一发行版内下列核心件按 sha256 现场对账；发布件不含跨端同步工具。改核心后必须重新生成本清单。",
+  "files": {
+    "xtgl_core.py": "b8564face5fafa1eb70a21570355ac1c25ecf695f03ebb48e1528a6c6adb43cd",
+    "serve.py": "dc57ec1b02a4ef246c603fec9b09f93393b9f3e9de927a5ffbfd443768025ed9",
+    "index.html": "17db952b40b5aaaf816b6bfeefc64b89134869cebb1dafa80d79174ab87c1f93",
+    "setup.html": "71c353c1f80f290e37a9056dc5e711680490ab4bc7060fbc142371bcc00c8b10",
+    "tutorial.html": "1814843e403e23650edbf2d7d3187d795b20099ec88be1281d7bdfbfb59abac2",
+    "module_check.py": "4e7e72d1c1db2e2981cfc18703ae613722f21fdaba81a66692b3c0d7fc1ecbc7",
+    "modules.json": "e79a8ae8d91cffd9d414db12e6c210b96a65954b3e375b08dc06d3f67596a54e",
+    "snapshot.py": "ddc39f18cca5fd2cd8751f2871f019659d8c61a44332dff93aa5c38656e06d1f",
+    "i18n.js": "0a4a2925a9827ff95ef762d17daf1ab2ed963370285edbf831ee3b001a220fbf",
+    "favicon.png": "f93312ade92f2d671cfdec25cfd430547f10d953e587b5b0c0ce6ead4565a899",
+    "xtgl_clean.py": "e5433d70594eb182e8b3fa48bdf84472f5fbae4ff3f4ad96daa752c681e4e2ea",
+    "design_tokens.json": "af3af7c1f78a89b4c528621e182f9ea93fb947ca970a516c0ff665d51f862b50"
+  }
+}

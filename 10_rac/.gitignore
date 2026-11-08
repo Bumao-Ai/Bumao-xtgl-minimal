@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Local runtime audit / secrets (never commit)
+logs/
+tests/_tmp_*
+*.local
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# container-internal self-check (lives on disk for the archive, not shipped)
+selfcheck.py
+
+# 裁定05: pre-change backups must not live in 10_rac (they go to 90_lishi\bak)
+*.bak

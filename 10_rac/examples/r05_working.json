@@ -1,0 +1,75 @@
+{
+ "ch": 5,
+ "file": "v05_working.txt",
+ "chapter_title": "5. Working Agreement",
+ "pre": [],
+ "clauses": [
+  {
+   "id": "5.1",
+   "root": "5.1",
+   "title": "5.1 Be honest about limits: do not claim a host's bare shell was locked when that host exposes no hook surface the guard can attach to.",
+   "body": []
+  },
+  {
+   "id": "5.2",
+   "root": "5.2",
+   "title": "5.2 Prefer reversible steps and surface the blast radius of an action before taking it.",
+   "body": []
+  },
+  {
+   "id": "5.3",
+   "root": "5.3",
+   "title": "5.3 Keep the runtime to the Python standard library. Optional third-party deps, if any, go in requirements.txt and are never required to run the gates.",
+   "body": []
+  },
+  {
+   "id": "5.4",
+   "root": "5.4",
+   "title": "5.4 Leave a clear, auditable trail: what was decided, why, and what was verified.",
+   "body": []
+  },
+  {
+   "id": "5.5",
+   "root": "5.5",
+   "title": "5.5 Completion is a stage, not a feeling: every deliverable sits on one of five stages — S0 chartered (10%), S1 in progress (35%), S2 runnable (65%), S3 accepted (90%), S4 archived (100%).",
+   "body": [
+    "The percentage is derived from the stage, never typed in by hand. A stage change that only ever goes up is treated as falsified bookkeeping.",
+    "S0 requires a project record stating goal, boundary and deliverable. S1 requires working material but no usable artifact. S2 requires an artifact that actually opens and is non-empty. S3 requires the client to say so — without that, S2 is the ceiling. S4 requires the whole directory to have moved into 90_lishi, with nothing left in place.",
+    "Every delivery note must carry one line: 'Stage: S? (evidence: ...)'. Missing that line counts as not delivered."
+   ]
+  },
+  {
+   "id": "5.6",
+   "root": "5.6",
+   "title": "5.6 Two healths, judged apart: host health (A) covers the machine — drivers, services, disk, ports, shortcuts, locked files; system health (B) covers the rule engine itself — version, clause count, gate results, defect ledger, schedule, work log.",
+   "body": [
+    "They are never blended into one score. A single 'health score' hides exactly the thing you need to act on.",
+    "Each side declares its own closing criteria. A rule of thumb: A closes when no P0 item remains and the disk has room for three times the expected output; B closes when every gate passes, the defect ledger has no open row, and today's work log is written.",
+    "Only when both sides close may you say 'closed' and archive a batch. Otherwise list the open items by id — 'basically fine' is not a status.",
+    "Allowed status words: normal / pending-reboot / open / closed. Inventing a fifth word is a rules bypass."
+   ]
+  },
+  {
+   "id": "5.7",
+   "root": "5.7",
+   "title": "5.7 Machine judgement is a baseline, not the final word: a human override may change how a task or project is displayed, and it must be recorded with who and when.",
+   "body": [
+    "Two layers: the baseline computed from disk and ledgers, and the override written by a human. Display prefers the override and keeps the baseline visible so it can be restored in one click.",
+    "Override keys must be stable identifiers — a file path for a task, an abbreviation for a project. Never a title: titles change, and the override silently disappears with them.",
+    "An override never bypasses a gate. Marking a task 'done' does not turn a failing check green. Using an override as evidence is a rules bypass.",
+    "If the override file is corrupt, degrade to 'no override' and say so; never swallow the error."
+   ]
+  },
+  {
+   "id": "5.8",
+   "root": "5.8",
+   "title": "5.8 Daily work log is mandatory: one row per delivery, six columns — date, time, actor, task, what was done, pointer to the full record.",
+   "body": [
+    "The pointer must resolve to a file that actually exists. A row pointing at nothing counts as not logged.",
+    "The log is an index, not a report. Process, evidence and review live in the file being pointed at; the log never duplicates the body.",
+    "Rolling retention (90 days by default): expired rows move to an archive subdirectory. Never delete a row, never rewrite a historical date.",
+    "This framework does not ship the gate that enforces it; adopters implement 'zero rows today = FAIL' in their own engine and register it under 4.2 of their map."
+   ]
+  }
+ ]
+}

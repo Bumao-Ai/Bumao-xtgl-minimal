@@ -1,0 +1,2 @@
+# 裁定04：rules\ 已不再是生效规则目录，28 条示例模板移到了 examples\。
+# 此占位文件必须保留——rules_db.find_root 靠 rules\ 与 meta.json 同在来定位 ROOT，git 不跟踪空目录，删了它 clone 后引擎直接 RuntimeError。

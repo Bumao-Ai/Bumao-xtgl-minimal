@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# 本机配置、备份与临时文件
+*.bak
+*.bak_*
+*.bak-*
+*.local.json
+web_config.local.json
+*.tmp
+*~
+
+# 日志
+logs/
+*.log
+
+# 编辑器与系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# 测试临时产物
+_tmp_*

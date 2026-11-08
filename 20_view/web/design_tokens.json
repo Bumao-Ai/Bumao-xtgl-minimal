@@ -1,0 +1,279 @@
+{
+  "_说明": "三端视觉唯一真身。源自个人主页设计体系，2026-11-03 用户当面确认以此为基准。改视觉先改这里，再同步 web（index.html :root）与桌面（lib/core/theme.dart palette bumao）。禁止在三端各自写死颜色。 ｜ 2026-11-07 前端美化线补全：本文件此前无任何代码读取（仅 kernelsync 清单成员＋index.html 注释提及），已按实际生效样式补齐「字号/背景四层/指针/配色」四段；生效值仍以 index.html 的 <style> 段为准，本文件为规格记录。 ｜ 2026-11-07 16:0x 第九轮：指针改浏览器原生 cursor（零 JS）、卡片统一 300px 高并按形状分组，本文件同步更新，仍为规格记录、生效值以 index.html <style> 为准。",
+  "_基准项目": "Bumao 个人主页设计体系 v1（设计原则：极简/灰阶/大留白/字重300/mono标签）",
+  "字体": {
+    "sans": [
+      "DengXian",
+      "等线",
+      "HarmonyOS Sans SC",
+      "PingFang SC",
+      "Microsoft YaHei",
+      "system-ui",
+      "sans-serif"
+    ],
+    "mono": [
+      "Bahnschrift",
+      "DIN Alternate",
+      "Cascadia Mono",
+      "Consolas",
+      "monospace"
+    ],
+    "正文字重": 300,
+    "说明": "正文一律 300；标题最多 400，靠字号和字距拉层级，不靠加粗"
+  },
+  "灰阶": {
+    "g0": "#ffffff",
+    "g1": "#f7f9fc",
+    "g2": "#edf1f7",
+    "g3": "#e1e7ef",
+    "g4": "#c9d2de",
+    "g5": "#9aa6b5",
+    "g6": "#66717f",
+    "g7": "#3a4450",
+    "g8": "#0b1220",
+    "说明": "写死 9 级，不许在三级之间自己插值再造色"
+  },
+  "圆角": {
+    "xl": "34px",
+    "lg": "26px",
+    "md": "18px",
+    "sm": "12px",
+    "card": "12px",
+    "pill": "999px",
+    "说明": "卡片用 lg(26)，内容块用 md(18)，小件用 sm(12)，胶囊按钮/导航用 999"
+  },
+  "动效": {
+    "曲线": "cubic-bezier(0.16, 1, 0.3, 1)",
+    "曲线柔和": "cubic-bezier(0.22, 0.61, 0.36, 1)",
+    "时长": "180ms",
+    "说明": "入场统一 180ms 同一曲线；长动效（光斑漂移/呼吸）另设，不要混用"
+  },
+  "主题": {
+    "white": {
+      "底": "#f2f3f6",
+      "面": "#ffffff",
+      "文字": "#0d0f13",
+      "文字次": "rgba(13,15,19,0.6)",
+      "文字弱": "rgba(13,15,19,0.36)",
+      "线": "rgba(13,15,19,0.09)",
+      "线强": "rgba(13,15,19,0.16)",
+      "玻璃": "rgba(255,255,255,0.55)",
+      "玻璃实": "rgba(255,255,255,0.76)",
+      "玻璃边": "rgba(255,255,255,0.92)",
+      "阴影": "0 40px 90px -52px rgba(22,32,52,0.42)",
+      "内高光": "inset 0 1px 0 rgba(255,255,255,1)",
+      "强调": "#101318",
+      "强调上文字": "#ffffff",
+      "分段底": "rgba(13,15,19,0.05)",
+      "分段滑块": "#ffffff",
+      "噪点": 0.035
+    },
+    "black": {
+      "底": "#07080a",
+      "面": "#101216",
+      "文字": "#f3f4f6",
+      "文字次": "rgba(243,244,246,0.62)",
+      "文字弱": "rgba(243,244,246,0.36)",
+      "线": "rgba(255,255,255,0.09)",
+      "线强": "rgba(255,255,255,0.16)",
+      "玻璃": "rgba(255,255,255,0.05)",
+      "玻璃实": "rgba(255,255,255,0.08)",
+      "玻璃边": "rgba(255,255,255,0.11)",
+      "阴影": "0 40px 100px -40px rgba(0,0,0,0.92)",
+      "内高光": "inset 0 1px 0 rgba(255,255,255,0.14)",
+      "强调": "#ffffff",
+      "强调上文字": "#08090b",
+      "分段底": "rgba(255,255,255,0.05)",
+      "分段滑块": "rgba(255,255,255,0.13)",
+      "噪点": 0.06
+    }
+  },
+  "玻璃": {
+    "模糊": "blur(30px) saturate(190%)",
+    "模糊轻": "blur(20px) saturate(170%)",
+    "边框": "1px solid var(--glass-brd)",
+    "组成": "var(--inset), var(--shadow)",
+    "说明": "卡片必须有：玻璃底 + 1px 亮边 + 内高光 + 大而低的阴影。四者缺一就不是这套视觉"
+  },
+  "组件": {
+    "按钮": {
+      "高度": "46px",
+      "左右内距": "24px",
+      "圆角": "999px",
+      "字号": "13.5px",
+      "字距": "0.03em"
+    },
+    "导航胶囊": {
+      "外壳圆角": "999px",
+      "内距": "8px 10px 8px 12px",
+      "项高": "32px",
+      "项内距": "0 17px",
+      "项字号": "12.5px"
+    },
+    "mono标签": {
+      "字号": "10.5px",
+      "字距": "0.22em",
+      "大小写": "uppercase",
+      "色": "文字弱"
+    },
+    "统计数字": {
+      "字体": "mono",
+      "字距": "0.06em",
+      "特性": "tabular-nums"
+    }
+  },
+  "禁忌": [
+    "不用图片堆砌",
+    "不用彩虹渐变",
+    "不用阴影堆叠（只许一层大而低的投影 + 内高光）",
+    "不用纯黑 #000 / 纯白 #FFF 做背景（用 g8/g0）",
+    "不靠加粗拉层级（正文 300、标题最多 400）"
+  ],
+  "字号": {
+    "_说明": "2026-11-07 起七级字号改为 calc(Npx * var(--fs-zoom))，随字体档位实时缩放；默认 zoom=1.12",
+    "fs-1": "calc(32px * var(--fs-zoom))",
+    "fs-2": "calc(28px * var(--fs-zoom))",
+    "fs-3": "calc(24px * var(--fs-zoom))",
+    "fs-4": "calc(20px * var(--fs-zoom))",
+    "fs-5": "calc(18px * var(--fs-zoom))",
+    "fs-6": "calc(16px * var(--fs-zoom))",
+    "fs-7": "calc(14px * var(--fs-zoom))",
+    "_默认实测": "body 15.68px；A+ 17.36px；A++ 19.04px",
+    "_最小可用字号": "表格/标签 10.5px 已全部变量化，随档位缩放"
+  },
+  "背景": {
+    "_说明": "四层 DOM 分层，取代原 <canvas id=\"bg\"> 等高线；canvas 已 display:none 且尺寸归零",
+    "L0_底色": "radial-gradient(120% 92% at 24% 14%, var(--bg-0), var(--bg-1))",
+    "L0b_色区": "三块 radial-gradient，取当前配色 --blob-1/2/3；暗底 opacity .95、亮底 .5",
+    "L1_光场": {
+      "块数": 5,
+      "尺寸": "68/52/38/58/44 vmax",
+      "模糊": "暗底 110px、亮底 130px、移动端 88px",
+      "动效": "漂移 43—61s（质数周期）+ 呼吸 scale 1→1.06",
+      "不透明度": "暗底 .72—.9、亮底 .15—.26"
+    },
+    "L3_光尘": {
+      "种类": "is-dot 2px / is-speck 1px",
+      "周期": "22s、31s 线性上浮"
+    },
+    "换配色光带": "veilSweep 1.05s，仅 data-palette / data-theme 变化时重放"
+  },
+  "指针": {
+    "_说明": "2026-11-07 起改用浏览器原生 cursor:url(data:image/png;base64)。DOM 准星走 JS 事件→style→合成，比原生光标慢一帧，用户连续三轮复报跳，物理上无解，故整段停用。",
+    "实现": "html, html *, html.has-cursor, html.has-cursor * { cursor:url(\"data:image/png;base64,…\") 16 16, crosshair !important }",
+    "图形": "32×32 PNG（base64 内联，零外部请求）：B 款四段弧外环 + 十字丝 + 四刻度 + 中心点；深色描边 + 白色主线，明暗两种底都可见",
+    "热点": "16 16（图片正中）",
+    "回退": "crosshair",
+    "输入类控件": "input/textarea/select/contenteditable 恢复 cursor:auto",
+    "触屏": "@media (pointer:coarse),(hover:none) 恢复系统光标",
+    "DOM 准星": "#xtglCross{display:none!important}；pointermove/rAF/lerp/is-hot/is-press 全部停用",
+    "彩虹归属": "卡片 hover 彩虹是纯 CSS :hover（.card-rainbow/.card-glow），与指针实现无关，完整保留"
+  },
+  "配色_个人站五套": {
+    "_说明": "来自个人站配色规格，含 2026-11-05「粉/白/橙降亮≥20%」后的压暗值；在本端以 data-palette=p-white/p-black/p-pink/p-rhine/p-orange 选用",
+    "p-white": {
+      "bg-0": "#b3b7bf",
+      "bg-1": "#c5cad2",
+      "accent": "#1a1e25"
+    },
+    "p-black": {
+      "bg-0": "#07080a",
+      "bg-1": "#101216",
+      "accent": "#ffffff"
+    },
+    "p-pink": {
+      "bg-0": "#bca7b3",
+      "bg-1": "#d0bec8",
+      "accent": "#b56f8c"
+    },
+    "p-rhine": {
+      "bg-0": "#04101f",
+      "bg-1": "#0a2342",
+      "accent": "#7db6ff"
+    },
+    "p-orange": {
+      "bg-0": "#bbaa92",
+      "bg-1": "#d2c2a9",
+      "accent": "#b3702f"
+    }
+  },
+  "玻璃_实际配方": {
+    "_说明": "2026-11-07 起全站统一毛玻璃，不再只有三张卡",
+    "card": "background color-mix(bg-1 18%) + blur(36px) saturate(185%) + inset/shadow + 顶部斜向高光",
+    "card-a": "background color-mix(bg-1 24%) + blur(44px) saturate(195%)",
+    "button.ghost": "blur(22px) saturate(175%)",
+    "cmdbar": "background color-mix(bg-0 62%) + blur(28px) saturate(180%)"
+  },
+  "栅格": {
+    "_说明": "12 栏；通栏 1258px、半栏 617px（1600 视口实测）；2026-11-07 起按「卡片对齐」段分组排序",
+    "通栏卡": [
+      "s-health",
+      "s-metric",
+      "s-arch",
+      "s-caps",
+      "s-capdata",
+      "s-search",
+      "s-defect",
+      "s-renwu",
+      "s-oss"
+    ],
+    "半栏卡": [
+      "s-ai",
+      "s-anom",
+      "s-set",
+      "s-tasks",
+      "s-proj",
+      "s-access",
+      "s-path",
+      "s-export"
+    ],
+    "footer与向导": "grid-column 1/-1",
+    "统一高度": "300px（不再按内容自然高度）",
+    "分组顺序": "order=10 半栏组 → order=20 通栏组 → order=90 footer/向导"
+  },
+  "卡片对齐": {
+    "_说明": "2026-11-07 16:0x 用户「必须对齐、同形状一起罗列」",
+    "统一高度": "所有 #main [data-page] 固定 height:300px（移动端 240px），详情态改 auto；消除原先 207/219/229/233/260/262/263/274/285 九种零碎高度",
+    "容器打通": "#main > .grid2{display:contents}，让所有卡直接参与 #main 的 12 栏 grid，order 才能全局排序；DOM 层级与所有 id 不变",
+    "分组": "半栏近方卡 order=10 连续排前（每行 2 张 617px），通栏长条卡 order=20 连续排后（每行 1 张 1258px）；foot/setup order=90",
+    "落单补齐": "balance() 统计 order=10 的可见卡，奇数时给组内末张加 .fill-row（grid-column:span 12!important）补满整行，不留半行空洞",
+    "短卡": "scrollHeight <= clientHeight+6 的卡标记 .is-short，隐藏渐隐与省略号；数据填入后 MutationObserver 会自动解除，恢复可展开",
+    "触发时机": "body[data-curpage]/body.class 变化、main childList、resize、以及 0/700/1800ms 三次兜底",
+    "返回键": "详情态右上角 fixed 52×52（窄屏 46×46）、z-index 200；body.is-detail .hero padding-right 76/60px 让位，四档视口零重叠"
+  },
+  "字体设置": {
+    "_说明": "用户「字体加一个自定义设置，默认粗一点再大一点」",
+    "控件": "theme-tools 第三行 A− / Aa·N / A+ / B（纯符号 + aria-label，零新增业务文案）",
+    "字号档": "data-fs 0..3 → --fs-zoom 1.00/1.12(默认)/1.24/1.36，localStorage xtgl-fontSize",
+    "字重档": "data-fw 0..3 → --fw-body 400/450(默认)/550/650，localStorage xtgl-fontWeight",
+    "早绑定": "head 同步读 localStorage 写 dataset.fs/fw，杜绝首屏闪一帧小字",
+    "字重替换": "原 8 处 font-weight:300 全部改 var(--fw-body)"
+  },
+  "默认配色": {
+    "palette": "p-rhine 莱茵蓝",
+    "theme": "auto（按配色明暗：蓝/黑=暗，白/粉/橙=亮）",
+    "明暗切换": "themeBtn 默认「◐ 自动」；setPalette 不再写死 xtgl-theme、不改按钮文字"
+  },
+  "状态色": {
+    "_说明": "功能色只有两组：过＝青、不过＝朱。index.html 的 :root 与 :root[data-theme=dark] 中 --ok／--danger 取本段值，改这里须同步两处。",
+    "亮": {"ok": "#3d9a6e", "danger": "#c0392b"},
+    "暗": {"ok": "#5ec48f", "danger": "#e86a5c"}
+  },
+  "窄屏 hero": "@media (max-width:1000px) 单列，避免字号放大后正文被挤成竖排单字",
+  "边框彩虹": {
+    "_说明": "卡片 hover 时只在 2px 细边上跑的旋转彩虹，mask-composite:exclude 把卡内完全挖空；源自个人主页 pages.css .rb，静止不亮、hover 才亮。三端 index.html :root 的 --rb-1..--rb-9 取本段值。",
+    "rb1": "#ff2f6d",
+    "rb2": "#ff7a1f",
+    "rb3": "#ffe22f",
+    "rb4": "#4dff8a",
+    "rb5": "#22e0ff",
+    "rb6": "#2f7bff",
+    "rb7": "#8b2fff",
+    "rb8": "#ff2f9d",
+    "rb9": "#ff2f6d",
+    "细边": "1.5px → hover 2px",
+    "外发光": "blur(9px) saturate(160%) → hover blur(16px) saturate(180%)",
+    "亮色主题浓度": 0.62,
+    "旋转": "8s linear infinite，--rb-ang 200deg → 560deg"
+  }
+}

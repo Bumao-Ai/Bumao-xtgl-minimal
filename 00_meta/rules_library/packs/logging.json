@@ -1,0 +1,17 @@
+{
+  "id": "logging",
+  "name": "日志与复审",
+  "name_en": "Logging and review",
+  "applies_to": [
+    "personal",
+    "community",
+    "minimal"
+  ],
+  "depends_on": [
+    "ledger",
+    "tasks"
+  ],
+  "enabled": false,
+  "rules": [],
+  "note": "预置空槽：规则数组为空、enabled=false，不预设行为，启用与否由用户改。"
+}

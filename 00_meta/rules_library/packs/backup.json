@@ -1,0 +1,16 @@
+{
+  "id": "backup",
+  "name": "备份与保留",
+  "name_en": "Backup and retention",
+  "applies_to": [
+    "personal",
+    "community",
+    "minimal"
+  ],
+  "depends_on": [
+    "backup"
+  ],
+  "enabled": false,
+  "rules": [],
+  "note": "预置空槽：规则数组为空、enabled=false，不预设行为，启用与否由用户改。"
+}

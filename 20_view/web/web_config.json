@@ -1,0 +1,57 @@
+{
+  "schema": 2,
+  "title": "Bumao XTGL",
+  "product_edition": "Minimal",
+  "subtitle": "零规则版 · 极简内核 · 不含生效规则（附示例模板） · 按需注入规则包",
+  "subtitle_en": "Zero-rules edition · Minimal kernel · no active rules (example templates included) · inject rules as needed",
+  "labels": {
+    "_note": "端名中文称谓统一映射：键为英文端标识（与目录名一致），只在此处改 zh/en 即可换称谓；代码与 /api 只按英文标识取词。",
+    "personal": {"zh": "私人版", "en": "Personal edition"},
+    "community": {"zh": "个人版", "en": "Community edition"},
+    "minimal": {"zh": "社区版", "en": "Minimal edition"}
+  },
+  "project_root": "",
+  "daiban": "",
+  "defects": "",
+  "check_log_dir": "10_rac/adapters/jilu/logs/minimal",
+  "access": {
+    "subpath": "10_rac/adapters/jilu/huichuan",
+    "note": "汇入记录面：按 oss.ends[].root 逐端解到 <root>/<subpath>；只报在位、大小、时间与结论行（ALL PASS／FAIL／无结论），密钥内容一律不回传也不落日志。"
+  },
+  "export": {
+    "dir": "../../zichan/01_renwu_chanchu/daochu",
+    "keep": 20,
+    "overflow_dir": "90_lishi/daochu_guoqi",
+    "note": "界面「落盘」与浏览器下载走同一段取数，字节数应当一致；每类只留最近 keep 份，多出来的迁到本端 90_lishi/daochu_guoqi，只迁不删。"
+  },
+  "port": 8804,
+  "engine": {
+    "cwd": "10_rac",
+    "cmd": [
+      "python",
+      "BumaoXTGL_Minimal_v01.py",
+      "check"
+    ],
+    "timeout": 120
+  },
+  "rules": {
+    "core": {
+      "dir": "core_rules",
+      "enabled": false
+    },
+    "default": {
+      "dir": "rules",
+      "enabled": false
+    },
+    "user": {
+      "dir": "rules_user",
+      "enabled": false
+    }
+  },
+  "capabilities": [
+    "gate",
+    "backup"
+  ],
+  "capabilities_off": [],
+  "capabilities_note": "本端打开的能力 ID；全量定义见 modules.json（个人端与开源两端按端差异，不再强求字节一致）。未打开的不采数、不显示；开关里有而定义里没有＝「未挂载能力」。"
+}

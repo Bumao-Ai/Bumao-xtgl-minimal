@@ -1,0 +1,32 @@
+{
+ "ch": 4,
+ "file": "v04_verify.txt",
+ "chapter_title": "4. Verification Gates",
+ "pre": [],
+ "clauses": [
+  {
+   "id": "4.1",
+   "root": "4.1",
+   "title": "4.1 check --strict must report ALL PASS before work is declared done.",
+   "body": []
+  },
+  {
+   "id": "4.2",
+   "root": "4.2",
+   "title": "4.2 Reverse tests must prove it: a known-broken fixture goes red, then green again after restore. Without this, the gate is unproven.",
+   "body": []
+  },
+  {
+   "id": "4.3",
+   "root": "4.3",
+   "title": "4.3 Exit code 0 alone is never proof. Assert the actual property the task cares about.",
+   "body": []
+  },
+  {
+   "id": "4.4",
+   "root": "4.4",
+   "title": "4.4 No false green: a guard that fires on no input ever, or whose tests always pass by construction, is invalid and must be rewritten.",
+   "body": []
+  }
+ ]
+}

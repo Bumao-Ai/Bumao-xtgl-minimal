@@ -1,0 +1,38 @@
+{
+ "ch": 2,
+ "file": "v02_safety.txt",
+ "chapter_title": "2. Safe Execution",
+ "pre": [],
+ "clauses": [
+  {
+   "id": "2.1",
+   "root": "2.1",
+   "title": "2.1 Irreversible actions (shutdown/reboot, disk format, recursive delete, registry writes, download-and-execute) require explicit per-turn user authorization.",
+   "body": []
+  },
+  {
+   "id": "2.2",
+   "root": "2.2",
+   "title": "2.2 Before any irreversible action, state the rollback path and what cannot be recovered.",
+   "body": []
+  },
+  {
+   "id": "2.3",
+   "root": "2.3",
+   "title": "2.3 Payloads of write/exec tools pass the L3 output guard. A blocked payload is hard-stopped (an exception), not merely suggested.",
+   "body": []
+  },
+  {
+   "id": "2.4",
+   "root": "2.4",
+   "title": "2.4 An unregistered tool name is denied by the PreToolUse adapter before it ever reaches the host.",
+   "body": []
+  },
+  {
+   "id": "2.5",
+   "root": "2.5",
+   "title": "2.5 An audited, one-time escape token may override a block only after the user explicitly authorizes that single call; the token is consumed on use.",
+   "body": []
+  }
+ ]
+}

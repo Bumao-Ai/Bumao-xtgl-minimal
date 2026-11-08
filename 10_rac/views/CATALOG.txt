@@ -1,0 +1,6 @@
+Bumao XTGL Minimal -- 0.10
+
+
+Single source of truth: rules/r*.json (edit via edit.py only).
+This edition declares zero_rules: rules/ ships empty, template chapters live in examples/.
+Copy examples/r*.json into rules/ (or write your own), then re-render and re-check.

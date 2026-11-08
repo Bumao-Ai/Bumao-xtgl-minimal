@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "note": "规则包格式。字段齐、类型对才进校验；本文件不预设任何数值与行为。",
+  "pack": {
+    "id": "字符串，包名，必须与文件名一致",
+    "name": "字符串，中文名",
+    "name_en": "字符串，英文名，与 name 成对（中英两版唯一落点在 i18n.js）",
+    "applies_to": [
+      "端名数组，取值只能是 personal / community / minimal"
+    ],
+    "depends_on": [
+      "能力 id 数组，必须是 modules.json 定义表里已存在的 id"
+    ],
+    "enabled": "布尔，默认 false；false 时规则一律不生效、不进快照",
+    "rules": [
+      {
+        "id": "字符串",
+        "action": "字符串",
+        "scope": "字符串",
+        "params": "对象，阈值由用户自填，仓库不预置数值",
+        "desc": "字符串，说明"
+      }
+    ],
+    "note": "字符串，可选，说明用途"
+  },
+  "preset_slots": [
+    "backup",
+    "audit",
+    "credential",
+    "rollback",
+    "logging"
+  ],
+  "forbidden": [
+    "真身条款的标题／编号／正文",
+    "写死的天数／份数／条数／版本号",
+    "本机绝对路径与个人账户名"
+  ]
+}

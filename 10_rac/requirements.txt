@@ -1,0 +1,3 @@
+# Bumao XTGL Minimal has ZERO required runtime dependencies (Python standard library only).
+# Optional third-party packages may be listed here; the gates must still run
+# with `pip install -r requirements.txt` left completely empty.

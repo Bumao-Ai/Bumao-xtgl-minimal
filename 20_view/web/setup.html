@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="favicon.png">
+<title>首次向导 · Bumao XTGL</title>
+<style>
+:root{
+  --fs-zoom:1.12;
+  --paper:#F3EEE3; --paper-2:#FBF8F1; --ink:#2B2620; --ink-2:#5B564E;
+  --celadon:#6F9C8F; --cinnabar:#B5495B; --dai:#3C4A5A; --ochre:#A8642F; --gold:#D9C9A8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:"DengXian","等线","Microsoft YaHei","PingFang SC",system-ui,sans-serif;line-height:1.65;padding:28px}
+.wrap{max-width:860px;margin:0 auto}
+header{border-bottom:3px double var(--gold);padding-bottom:16px;margin-bottom:22px;display:flex;align-items:center;gap:14px}
+header img{width:48px;height:48px;border-radius:12px}
+h1{font-size:22px;letter-spacing:1.5px}
+.sub{color:var(--ink-2);font-size:13px;margin-top:4px}
+.card{background:var(--paper-2);border:1px solid #E6DCC8;border-left:3px solid var(--celadon);border-radius:6px;padding:18px 20px;margin-bottom:16px}
+.card h2{font-size:14px;color:var(--dai);letter-spacing:.6px;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.step{display:inline-block;width:22px;height:22px;line-height:22px;text-align:center;border-radius:50%;
+  background:var(--dai);color:#fff;font-size:12px;font-weight:600}
+.hint{font-size:12.5px;color:var(--ink-2);margin:4px 0 12px}
+label{display:block;font-size:12.5px;color:var(--ink-2);margin:10px 0 4px;letter-spacing:.3px}
+input[type=text]{width:100%;padding:9px 12px;border:1px solid #DCCFB4;border-radius:4px;background:#fff;
+  font-family:Consolas,"DengXian",monospace;font-size:13px;color:var(--ink)}
+input[type=text]:focus{outline:none;border-color:var(--ochre)}
+.row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.row .grow{flex:1;min-width:260px}
+button{background:var(--ochre);color:#fff;border:0;padding:9px 18px;border-radius:4px;font-size:13px;
+  cursor:pointer;letter-spacing:.5px;font-family:inherit}
+button:hover{background:#8A4E24}
+button:disabled{opacity:.55;cursor:wait}
+button.ghost{background:transparent;color:var(--dai);border:1px solid var(--gold)}
+button.ghost:hover{background:#F1E9D8}
+button.dark{background:var(--dai)}
+button.dark:hover{background:#2C3845}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+th,td{padding:7px 10px;text-align:left;border-bottom:1px solid #E8DFCC;overflow-wrap:anywhere}
+th{font-size:12px;color:var(--ink-2);border-bottom:2px solid var(--gold)}
+.ok{color:#3F6B5F;font-weight:600}.bad{color:var(--cinnabar);font-weight:600}.warn{color:var(--ochre)}
+.msg{font-size:12.5px;margin-top:10px;min-height:18px}
+.msg.err{color:var(--cinnabar)}.msg.ok{color:#3F6B5F}
+.note{background:#F6F1E6;border-left:3px solid var(--gold);padding:10px 14px;font-size:12.5px;color:var(--ink-2);border-radius:4px;margin-top:12px}
+.foot{color:var(--ink-2);font-size:11.5px;text-align:center;margin-top:18px}
+code{font-family:Consolas,monospace;font-size:12px;background:#EFE8D9;padding:2px 6px;border-radius:3px}
+/* 中英各一套：按 html[lang] 切换，避免半英半中 */
+.en{display:none}
+html[lang="en"] .zh{display:none}
+html[lang="en"] .en{display:inline}
+
+/* ── 字号增强（2026-11-03 用户反馈：控制台文字太小，全局上调一档）──
+   2026-11-08 Q011：本页补同 index.html 的增强块，与 index／tutorial 一致 */
+body{font-size:calc(15px * var(--fs-zoom))}
+h1{font-size:calc(24px * var(--fs-zoom))}
+.sub{font-size:calc(14.5px * var(--fs-zoom))}
+.card h2{font-size:calc(16px * var(--fs-zoom))}
+.hint,label,.note,.msg{font-size:calc(13.5px * var(--fs-zoom))}
+input[type=text],button{font-size:calc(14.5px * var(--fs-zoom))}
+table{font-size:calc(14.5px * var(--fs-zoom))}
+th{font-size:calc(13px * var(--fs-zoom))}
+code{font-size:calc(13px * var(--fs-zoom))}
+.step{font-size:calc(12.5px * var(--fs-zoom))}
+.foot{font-size:calc(12.5px * var(--fs-zoom))}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="favicon.png" alt="">
+    <div style="flex:1">
+      <h1><span class="zh">首次向导</span><span class="en">First-run setup</span></h1>
+      <div class="sub"><span class="zh">四步把控制台指向一个项目：选目录 · 检环境 · 设规则 · 建首任务</span><span class="en">Four steps to point the console at a project: choose a folder · check the environment · set rules · create the first task</span></div>
+    </div>
+    <button class="ghost" id="langBtn" onclick="xtglSetLang(XTGL_LANG==='en'?'zh':'en')">EN</button>
+  </header>
+
+  <div class="card">
+    <h2><span class="step">1</span><span class="zh">选择项目目录</span><span class="en">Choose the project folder</span></h2>
+    <p class="hint"><span class="zh">目录里应有 <code>00_meta/meta.json</code>。没有？勾选「新建工作区」让向导生成骨架。</span><span class="en">The folder should contain <code>00_meta/meta.json</code>. Missing it? Tick “New workspace” and let the wizard create the skeleton.</span></p>
+    <label><span class="zh">项目根目录</span><span class="en">Project root</span></label>
+    <div class="row">
+      <div class="grow"><input type="text" id="root"></div>
+      <button class="ghost" onclick="pickDir()"><span class="zh">浏览…</span><span class="en">Browse…</span></button>
+    </div>
+    <div class="note">
+      <span class="zh">想新建：填一个空目录，勾选 <label style="display:inline;margin:0"><input type="checkbox" id="mk" style="vertical-align:-2px"> 新建工作区</label>，
+      再点「生成骨架」。已有项目请直接跳到下一步。</span>
+      <span class="en">To create one: fill an empty folder, tick <label style="display:inline;margin:0"><input type="checkbox" id="mk" style="vertical-align:-2px"> New workspace</label>,
+      then click “Create skeleton”. For an existing project, skip to the next step.</span>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <div class="grow"><label><span class="zh">工作区名称（仅新建时用）</span><span class="en">Workspace name (new workspaces only)</span></label><input type="text" id="wsname"></div>
+      <button class="ghost" onclick="scaffold()"><span class="zh">生成骨架</span><span class="en">Create skeleton</span></button>
+    </div>
+    <div class="msg" id="msg1"></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="step">2</span><span class="zh">检测运行环境</span><span class="en">Check the runtime</span></h2>
+    <p class="hint"><span class="zh">检查 Python、元信息、引擎、规则层与写权限。警告项不阻断，错误项要修。</span><span class="en">Checks Python, metadata, engine, rules layers and write access. Warnings do not block; errors must be fixed.</span></p>
+    <button class="dark" onclick="checkEnv()"><span class="zh">检测</span><span class="en">Check</span></button>
+    <table id="envTbl" style="display:none">
+      <thead><tr><th style="width:34%"><span class="zh">检查项</span><span class="en">Check</span></th><th style="width:14%"><span class="zh">结果</span><span class="en">Result</span></th><th><span class="zh">细节</span><span class="en">Detail</span></th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div class="msg" id="msg2"></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="step">3</span><span class="zh">设置规则层</span><span class="en">Rules layers</span></h2>
+    <p class="hint"><span class="zh">三层按优先级合并：内核 &gt; 默认 &gt; 用户。用户层与内核层同编号时，该条会被拒绝并报告，不会静默覆盖。</span><span class="en">Three layers merge by priority: core &gt; default &gt; user. When the user layer shares an ID with the core layer, that row is rejected and reported, never silently overwritten.</span></p>
+    <label><span class="zh">内核层目录（不可被用户覆盖，可留空）</span><span class="en">Core layer folder (cannot be overridden; may be empty)</span></label>
+    <input type="text" id="r_core" placeholder="core_rules">
+    <label><span class="zh">默认层目录（必填）</span><span class="en">Default layer folder (required)</span></label>
+    <input type="text" id="r_default" placeholder="rules">
+    <label><span class="zh">用户层目录（可留空）</span><span class="en">User layer folder (may be empty)</span></label>
+    <input type="text" id="r_user" placeholder="rules_user">
+    <div class="msg" id="msg3"></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="step">4</span><span class="zh">创建第一个任务（可选）</span><span class="en">Create the first task (optional)</span></h2>
+    <p class="hint"><span class="zh">会在 <code>任务目录/</code> 下建目录，并生成一份符合规范的留档骨架。</span><span class="en">Creates a folder under <code>tasks/</code> and a compliant archive skeleton.</span></p>
+    <label><span class="zh">任务名称</span><span class="en">Task name</span></label>
+    <input type="text" id="taskname">
+    <label><span class="zh">任务目标（一句话，可空）</span><span class="en">Task goal (one line, may be empty)</span></label>
+    <input type="text" id="taskgoal">
+    <div class="row" style="margin-top:12px"><button class="ghost" onclick="makeTask()"><span class="zh">创建任务</span><span class="en">Create task</span></button></div>
+    <div class="msg" id="msg4"></div>
+  </div>
+
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 20px">
+    <button onclick="save()"><span class="zh">保存配置并进入控制台 →</span><span class="en">Save and open the console →</span></button>
+    <button class="ghost" onclick="location.href='/'"><span class="zh">返回（不保存）</span><span class="en">Back (without saving)</span></button>
+  </div>
+  <div class="msg" id="msg5"></div>
+
+  <div class="foot"><span class="zh">Bumao XTGL · 写接口仅接受本机页面调用（X-XTGL-Setup）</span><span class="en">Bumao XTGL · write APIs accept local pages only (X-XTGL-Setup)</span></div>
+</div>
+
+<script src="i18n.js"></script>
+<script>
+const H={'Content-Type':'application/json','X-XTGL-Setup':'1'};
+const $=id=>document.getElementById(id);
+const T=(zh,en)=>window.XTGL_LANG==='en'?en:zh;
+function setMsg(id,text,cls){const e=$(id);e.textContent=text||'';e.className='msg'+(cls?' '+cls:'');}
+function val(id){return $(id).value.trim();}
+
+/* 本机绝对路径不进可见文本：只显示 …\末段；完整路径放 title，供悬停查看。
+   真实值留在内存，提交时仍用绝对路径。 */
+function maskPath(s){
+  return String(s||'').replace(/[A-Za-z]:\\[^\s<>"'，。；、：！？（）《》【】｜·]*/g,function(p){
+    var seg=p.split(/[\\/]/).filter(Boolean);
+    return '…\\'+(seg[seg.length-1]||'');
+  });
+}
+var _realRoot='';
+function showRoot(full){
+  _realRoot=full||'';
+  var el=$('root');
+  el.value=maskPath(_realRoot);
+  el.title=_realRoot;   /* 完整路径只在 title，不进可见文本与 aria */
+  el.setAttribute('aria-label',T('项目根目录','Project root'));
+}
+function rootVal(){
+  var v=val('root');
+  return (_realRoot && v===maskPath(_realRoot)) ? _realRoot : v;
+}
+
+async function post(url,data){
+  const r=await fetch(url,{method:'POST',headers:H,body:JSON.stringify(data||{})});
+  const j=await r.json().catch(()=>({error:T('返回不是 JSON','response is not JSON')}));
+  if(!r.ok||j.error) throw new Error(j.error||('HTTP '+r.status));
+  return j;
+}
+
+function applyPlaceholders(){
+  $('root').placeholder=T('<项目根目录，如 …\\HX\\community>','<project root, e.g. …\\HX\\community>');
+  if(!_realRoot) $('root').setAttribute('aria-label',T('项目根目录','Project root'));
+  $('wsname').placeholder=T('例如 我的治理工作区','e.g. My governance workspace');
+  $('taskname').placeholder=T('例如 搭好第一版工作区','e.g. Set up the first workspace');
+  $('taskgoal').placeholder=T('例如 跑通控制台并验证闸门','e.g. Run the console and verify the gate');
+  $('mk').parentNode.setAttribute('aria-label',T('新建工作区','New workspace'));
+}
+
+async function boot(){
+  applyPlaceholders();
+  $('root').addEventListener('input',function(){ _realRoot=''; });
+  try{
+    const d=await fetch('/api/overview?fast=1').then(r=>r.json());
+    if(d.root && !d.setup_required) showRoot(d.root);
+    const rr=(d.rules||[]);
+    const get=n=>{const x=rr.find(v=>v.layer===n);return x&&x.enabled?(x.dir||''):''};
+    $('r_core').value=get('core'); $('r_default').value=get('default')||'rules'; $('r_user').value=get('user');
+  }catch(e){}
+}
+
+async function pickDir(){
+  setMsg('msg1',T('已打开系统目录选择框，请在弹出的窗口里选目录…','Folder picker opened; choose a folder in the dialog…'));
+  try{
+    const j=await post('/api/setup/pick',{});
+    if(!j.path){ setMsg('msg1',T('未选择目录','No folder selected')); return; }
+    showRoot(j.path);
+    setMsg('msg1',T('已选择：','Selected: ')+maskPath(j.path),'ok');
+  }catch(e){ setMsg('msg1',maskPath(e.message),'err'); }
+}
+
+async function scaffold(){
+  if(!val('root')){ setMsg('msg1',T('先填一个空目录路径','Fill in an empty folder path first'),'err'); return; }
+  try{
+    const j=await post('/api/setup/scaffold',{root:rootVal(),name:val('wsname')||undefined});
+    setMsg('msg1',T('骨架已生成：','Skeleton created: ')+((j.created||[]).map(maskPath).join(T('、',', '))||T('已存在，未覆盖','already present, not overwritten')),'ok');
+    checkEnv();
+  }catch(e){ setMsg('msg1',maskPath(e.message),'err'); }
+}
+
+async function checkEnv(){
+  if(!val('root')){ setMsg('msg2',T('先填项目目录','Fill in the project folder first'),'err'); return; }
+  setMsg('msg2',T('检测中…','Checking…'));
+  try{
+    const j=await fetch('/api/env?root='+encodeURIComponent(rootVal())).then(r=>r.json());
+    const tb=$('envTbl'); tb.style.display='';
+    tb.querySelector('tbody').innerHTML=j.checks.map(c=>
+      '<tr><td>'+escapeHtml(c.name)+'</td><td class="'+(c.ok?(c.warn?'warn':'ok'):'bad')+'">'+
+      (c.ok?T(c.warn?'警告':'通过',c.warn?'warning':'pass'):T('失败','failed'))+'</td><td>'+escapeHtml(maskPath(c.detail||''))+'</td></tr>'
+    ).join('');
+    setMsg('msg2', j.ok?T('环境可用。','Environment is usable.'):T('有失败项，修好再保存（警告项可继续）。','Some checks failed; fix them before saving (warnings may continue).'), j.ok?'ok':'err');
+  }catch(e){ setMsg('msg2',maskPath(e.message),'err'); }
+}
+
+async function makeTask(){
+  if(!val('root')){ setMsg('msg4',T('先填项目目录','Fill in the project folder first'),'err'); return; }
+  if(!val('taskname')){ setMsg('msg4',T('先填任务名称','Fill in the task name first'),'err'); return; }
+  try{
+    const j=await post('/api/setup/task',{root:rootVal(),name:val('taskname'),goal:val('taskgoal')});
+    setMsg('msg4',(j.existed?T('已存在，未覆盖：','Already present, not overwritten: '):T('已创建：','Created: '))+maskPath(j.path),'ok');
+  }catch(e){ setMsg('msg4',maskPath(e.message),'err'); }
+}
+
+async function save(){
+  if(!val('root')){ setMsg('msg5',T('先填项目目录','Fill in the project folder first'),'err'); return; }
+  const rules={
+    core:{dir:val('r_core'),enabled:!!val('r_core')},
+    default:{dir:val('r_default')||'rules',enabled:true},
+    user:{dir:val('r_user'),enabled:!!val('r_user')}
+  };
+  try{
+    const j=await post('/api/setup/save',{root:rootVal(),rules});
+    setMsg('msg5',T('已保存：','Saved: ')+maskPath(j.config)+(j.project_root?'':T('（项目根在自身树内，配置记空串，可整体搬家）',' (project root is inside its own tree; config keeps an empty string so the whole folder can move)')),'ok');
+    setTimeout(()=>location.href='/',900);
+  }catch(e){ setMsg('msg5',maskPath(e.message),'err'); }
+}
+
+function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+document.addEventListener('DOMContentLoaded',function(){
+  document.title=T('首次向导 · Bumao XTGL','First-run setup · Bumao XTGL');
+});
+boot();
+</script>
+</body>
+</html>

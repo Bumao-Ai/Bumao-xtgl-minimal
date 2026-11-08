@@ -1,0 +1,30 @@
+{
+ "name": "Bumao XTGL Minimal（开源规则框架）",
+ "abbr": "MINIMAL",
+ "version": "0.10",
+ "stage": "ready-to-push",
+ "sealed": "2026-10-31",
+ "root": ".",
+ "software_root": "10_rac",
+ "paths": {
+  "meta": "00_meta",
+  "rac": "10_rac",
+  "view": "20_view",
+  "taizhang": "30_taizhang",
+  "renwu": "40_renwu",
+  "lishi": "90_lishi"
+ },
+ "entry": {
+  "repo": "10_rac",
+  "tutorial": "10_rac/docs/TUTORIAL.md",
+  "selfcheck": "10_rac/selfcheck.py"
+ },
+ "remote": {
+  "configured": false,
+  "pushed": false,
+  "note": "本地 git 干净无远端；GitHub 推送属对外发布，按 TUTORIAL 执行，本容器不擅自 push。"
+ },
+ "note": "版本只此一处；本版补「怎么算干完」四条（5.5 完成度五档／5.6 两条健康分开判／5.7 状态可人工覆盖／5.8 每日工作登记）。",
+ "last_sync": "2026-11-02",
+ "effective": "2026-11-02"
+}
