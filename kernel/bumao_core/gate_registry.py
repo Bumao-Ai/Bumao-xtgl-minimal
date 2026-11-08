@@ -253,6 +253,11 @@ def count_registers_from_file(wrapper_path, encoding="utf-8-sig"):
 # 判据不取自被改的两件，而取自独立的审批册（当日行＋用户授权原话＋最新授权版本）。
 # 端无关：本文件不写端名，审批册按「层目录」形态向上搜索。
 _APPROVAL_WORDS = ("授权", "批准", "同意", "裁定", "令")
+
+# 无审批册策略：显式判拒（deny），不是「找不到文件」的软提示。
+# 任何版本变更若拿不出当日授权凭据，一律不放行；判定结果写进 result["verdict"]，
+# 由 version_approval_check() 带进 A10 的 detail，check --strict 里可见。
+NO_LEDGER_POLICY = "deny"
 _ENTRY_RE = re.compile(r"【第\s*(\d+)\s*号】\s*(\d{4}-\d{2}-\d{2})")
 _APPROVED_RE = re.compile(r"用户批准原文\s*[:：]\s*「([^」]*)」", re.S)
 _VERSION_RE = re.compile(r"(?<![\d.])\d+\.\d+(?:\.\d+)?(?![\d.])")
@@ -317,18 +322,21 @@ def version_approval(declared_version, changed_on, ledger_text, ledger_path=""):
     text = ledger_text or ""
     res = {"ledger_ok": bool(text.strip()), "ledger_path": ledger_path,
            "entries": 0, "latest_authorized": "", "l2_ok": False, "l3_ok": False,
+           "verdict": "DENY", "policy": NO_LEDGER_POLICY,
            "l2_detail": "", "l3_detail": ""}
 
     if not res["ledger_ok"]:
-        res["l2_detail"] = "找不到审批册（%s），版本变更无凭据" % (ledger_path or "未指定")
-        res["l3_detail"] = "找不到审批册，无法确认授权版本"
+        res["l2_detail"] = ("判拒（DENY · 策略 %s）：无审批册（%s），"
+                            "版本变更一律不放行" % (NO_LEDGER_POLICY, ledger_path or "未指定"))
+        res["l3_detail"] = "判拒（DENY）：无审批册，无法确认授权版本"
         return res
 
     entries = parse_approval_entries(text)
     res["entries"] = len(entries)
     if not entries:
-        res["l2_detail"] = "审批册里没有可解析的【第 N 号】条目"
-        res["l3_detail"] = "审批册无可解析条目，无法确认授权版本"
+        res["l2_detail"] = ("判拒（DENY · 策略 %s）：审批册里没有可解析的【第 N 号】条目"
+                            % NO_LEDGER_POLICY)
+        res["l3_detail"] = "判拒（DENY）：审批册无可解析条目，无法确认授权版本"
         return res
 
     # L2：当日授权行
@@ -363,13 +371,20 @@ def version_approval(declared_version, changed_on, ledger_text, ledger_path=""):
     else:
         res["l3_detail"] = ("声明版本 %s 与审批册最新授权版本 %s 不一致 —— "
                             "代码与契约同轮双改不能自证（C2 缺口）" % (declared, latest))
+    res["verdict"] = "PASS" if (res["l2_ok"] and res["l3_ok"]) else "DENY"
     return res
 
 
 def find_approval_ledger(start_dir):
-    """向上找审批册：环境变量 XTGL_SHENPI 优先；否则按「层目录/30_taizhang」形态搜索。
+    """向上找审批册：环境变量 XTGL_SHENPI 优先；否则只认「本层/30_taizhang/shenpi_jilu.txt」。
 
     端无关：不写任何端名，只认 30_taizhang 这个台账层目录名。
+
+    2026-11-09 修：不再扫描上下层目录的**兄弟目录**。旧实现会在发布仓布局
+    （各仓同级）或活区布局（三端同级）下，向上走到父目录后翻兄弟目录，
+    于是本端会读到别仓／别端审批册；A10 的判定理由因此变成
+    「审批册里没有条目」而不是「本端无审批册」，红得对但理由错。
+    判定结论仍是 DENY，只把取件范围收回到从 start_dir 到根的直系祖先。
     """
     env = os.environ.get("XTGL_SHENPI")
     if env and os.path.isfile(env):
@@ -379,16 +394,6 @@ def find_approval_ledger(start_dir):
         direct = os.path.join(cur, "30_taizhang", "shenpi_jilu.txt")
         if os.path.isfile(direct):
             return direct
-        try:
-            subs = sorted(os.listdir(cur))
-        except OSError:
-            subs = []
-        for name in subs:
-            if not os.path.isdir(os.path.join(cur, name)):
-                continue
-            p = os.path.join(cur, name, "30_taizhang", "shenpi_jilu.txt")
-            if os.path.isfile(p):
-                return p
         parent = os.path.dirname(cur)
         if parent == cur:
             break
@@ -408,5 +413,7 @@ def version_approval_check(declared_version, changed_on, start_dir):
             return False, "审批册读取失败：%s" % e, {}
     r = version_approval(declared_version, changed_on, text, ledger_path=path)
     ok = bool(r["l2_ok"] and r["l3_ok"])
-    detail = "L2 %s ｜ L3 %s" % (r["l2_detail"], r["l3_detail"])
+    r["verdict"] = "PASS" if ok else "DENY"
+    detail = "A10 判定=%s ｜ L2 %s ｜ L3 %s" % (
+        r["verdict"], r["l2_detail"], r["l3_detail"])
     return ok, detail, r

@@ -24,3 +24,7 @@ Thumbs.db
 
 # 测试临时产物
 _tmp_*
+
+# runtime check credential
+30_taizhang/check_last.json
+00_meta/a13_benlun_jizhun.json
