@@ -1,0 +1,591 @@
+{
+  "meta": {
+    "name": "Bumao Core",
+    "contract_version": "1.23",
+    "frozen_at": "2026-11-03",
+    "updated_at": "2026-11-07",
+    "updated_by": "Bumao 2026-11-07 · 用户令：三端系统与内核统一 0.10",
+    "frozen_by": "Bumao 治理体系 · 架构审查（AUDIT_261103.md 为本轮审查依据）",
+    "principles": [
+      "小内核",
+      "强配置",
+      "弱耦合",
+      "可扩展",
+      "数据隔离"
+    ],
+    "status": "frozen",
+    "note": "本契约冻结的是行为与接口，不冻结任何一份具体实现。三份 engine.py 哈希各异是已知事实（见 AUDIT_261103.md §3）。本轮用户于 2026-11-04 明确选择统一内核路线：合并为单一 engine.py 服务三端，差异仅在规则包与闸函数定义。改动冻结项必须走 change_control 流程，禁止静默改。"
+  },
+  "core_capabilities": {
+    "说明": "八大基础能力。evidence 指向现有真实实现（文件 + 符号），行号以 2026-11-03 现状为准，后续以符号名为准。status 三档：capable（已具备）/ partial（部分）/ design_only（仅设计）。",
+    "capabilities": [
+      {
+        "id": "cap_config",
+        "name": "配置管理",
+        "status": "capable",
+        "evidence": [
+          {
+            "end": "web_kernel",
+            "path": "发行端/community/web/xtgl_core.py",
+            "symbols": [
+              "normalize_config",
+              "load_config",
+              "save_config",
+              "ConfigError"
+            ],
+            "note": "schema2，兼容 v1 字段；损坏配置不抛异常，服务照常起（返回 error 文案）"
+          },
+          {
+            "end": "web_kernel",
+            "path": "发行端/community/web/xtgl_core.py",
+            "symbols": [
+              "load_config 中的 local overlay 分支"
+            ],
+            "note": "web_config.local.json（~/.xtgl 优先，其次同目录）覆盖发行配置，XTGL_NO_LOCAL_OVERLAY=1 可关"
+          },
+          {
+            "end": "cli_engine",
+            "path": "发行端/minimal/rules_db.py",
+            "symbols": [
+              "load_meta"
+            ],
+            "note": "以 00_meta/meta.json 为单点配置"
+          },
+          {
+            "end": "desktop",
+            "path": "私有端/桌面/lib/core/settings.dart",
+            "symbols": [
+              "Settings",
+              "shared_preferences 持久化"
+            ],
+            "note": "桌面端用户设置"
+          }
+        ]
+      },
+      {
+        "id": "cap_path",
+        "name": "路径管理",
+        "status": "capable",
+        "evidence": [
+          {
+            "end": "web_kernel",
+            "path": "发行端/community/web/xtgl_core.py",
+            "symbols": [
+              "resolve_root",
+              "_as_path",
+              "validate_root",
+              "_tilde",
+              "layer_path"
+            ],
+            "note": "工程根优先级：命令行 > 环境变量 XTGL_PROJECT_ROOT > 配置 > 默认；_tilde 保证页面/导出不出现本机绝对路径"
+          },
+          {
+            "end": "cli_engine",
+            "path": "bumao_core/engine.py",
+            "symbols": [
+              "HERE/运行根推导"
+            ],
+            "note": "所有路径由 __file__ 运行时溯源，脚本内不写字面绝对路径"
+          },
+          {
+            "end": "desktop",
+            "path": "私有端/桌面/lib/core/paths.dart",
+            "symbols": [
+              "Paths"
+            ],
+            "note": "个人版允许写死本机绝对路径；开源端不得效仿"
+          }
+        ]
+      },
+      {
+        "id": "cap_state",
+        "name": "状态管理（基线与覆盖层）",
+        "status": "capable",
+        "evidence": [
+          {
+            "end": "web_kernel",
+            "path": "发行端/community/web/xtgl_core.py",
+            "symbols": [
+              "manual",
+              "set_manual"
+            ],
+            "note": "~/.xtgl/manual.json schema2，verdict = auto|pass|fail，人工压过机器（双向）；key 命名空间 System: b_* / Tasks: task_<id>，legacy a_*/health_* 读时丢弃或映射"
+          },
+          {
+            "end": "web_kernel",
+            "path": "发行端/community/web/xtgl_core.py",
+            "symbols": [
+              "task_lifecycle",
+              "DONE_WORDS",
+              "RETIRE_DAYS"
+            ],
+            "note": "任务生命周期：完成→折叠区→满 30 天退场（文件由 xtgl_clean.py 搬归档）"
+          },
+          {
+            "end": "web_kernel",
+            "path": "发行端/community/web/xtgl_core.py",
+            "symbols": [
+              "rules() 三层合并"
+            ],
+            "note": "规则分层 core > default > user 即「基线与覆盖层」：内核层不可覆盖，冲突记录不静默"
+          }
+        ]
+      },
+      {
+        "id": "cap_data",
+        "name": "数据管理（本地存储与原子写入）",
+        "status": "capable",
+        "evidence": [
+          {
+            "end": "web_kernel",
+            "path": "发行端/community/web/xtgl_core.py",
+            "symbols": [
+              "detail_path_of",
+              "load_details",
+              "detail_of",
+              "save_detail"
+            ],
+            "note": "sidecar .detail.json：.bak → tmp → 重读校验 → os.replace 四步原子写"
+          },
+          {
+            "end": "web_kernel",
+            "path": "发行端/community/web/xtgl_core.py",
+            "symbols": [
+              "add_task",
+              "delete_task"
+            ],
+            "note": "同四步原子写；删除只迁不删（搬进 <看板>.archive.txt 可回查）"
+          },
+          {
+            "end": "web_kernel",
+            "path": "发行端/community/web/xtgl_core.py",
+            "symbols": [
+              "set_manual / save_config 同款原子写"
+            ],
+            "note": "manual.json 与 web_config.json 走同一套 .bak→tmp→os.replace"
+          },
+          {
+            "end": "cli_engine",
+            "path": "发行端/community/lock.py",
+            "symbols": [
+              "acquire",
+              "release",
+              "stale"
+            ],
+            "note": "并发写互斥锁（个人版 CLI 另有同类机制）"
+          }
+        ]
+      },
+      {
+        "id": "cap_log",
+        "name": "日志管理",
+        "status": "capable",
+        "evidence": [
+          {
+            "end": "web_kernel",
+            "path": "发行端/community/web/xtgl_core.py",
+            "symbols": [
+              "logs",
+              "clients",
+              "client_name",
+              "project_key"
+            ],
+            "note": "工作日志按天溯源到工程留档；执行主体归一与桌面端 logs_screen.dart 的 _clientName 同规则；project_key 以 40_renwu/<工程名> 留档目录为准"
+          },
+          {
+            "end": "cli_engine",
+            "path": "私有端/10_rac/engine.py",
+            "symbols": [
+              "check 子命令写 check_YYYYMMDD_HHMMSS.log"
+            ],
+            "note": "自检日志目录由 web_config.check_log_dir 指向，last_check() 读最新结论"
+          },
+          {
+            "end": "web_kernel",
+            "path": "发行端/community/web/xtgl_core.py",
+            "symbols": [
+              "last_check"
+            ],
+            "note": "读 check 日志正则 [结论]，ALL PASS 判定"
+          }
+        ]
+      },
+      {
+        "id": "cap_module",
+        "name": "模块管理",
+        "status": "capable",
+        "note": "声明式清单边界，不做动态加载（modules.json 自述：先声明边界，不做动态加载）。",
+        "evidence": [
+          {
+            "end": "web_kernel",
+            "path": "发行端/community/web/xtgl_core.py",
+            "symbols": [
+              "modules",
+              "core_compatible"
+            ],
+            "note": "版本兼容语义：'^2' 同主版本；'2.0' 前缀匹配"
+          },
+          {
+            "end": "web_kernel",
+            "path": "发行端/community/web/modules.json + module_check.py",
+            "symbols": [
+              "modules[4]: overview/gate/rules/tasks"
+            ],
+            "note": "kind=builtin，status=active"
+          },
+          {
+            "end": "web_kernel",
+            "path": "发行端/community/web/kernelsync.py",
+            "symbols": [
+              "CORE_FILES 12 文件",
+              "--check / --compare / --sync-from / --manifest"
+            ],
+            "note": "内核一致性由机器验证，不靠自觉复制"
+          }
+        ]
+      },
+      {
+        "id": "cap_security",
+        "name": "安全边界",
+        "status": "capable",
+        "evidence": [
+          {
+            "end": "web_kernel",
+            "path": "发行端/community/web/xtgl_core.py",
+            "symbols": [
+              "_same_origin"
+            ],
+            "note": "写接口三重限制：仅 127.0.0.1/::1 + 必带 X-XTGL-Setup: 1 头 + 不回应 CORS（跨站预检必败）"
+          },
+          {
+            "end": "web_kernel",
+            "path": "发行端/community/web/xtgl_core.py",
+            "symbols": [
+              "STATIC_FILES",
+              "DOC_ALLOW",
+              "_body（2MB 上限）"
+            ],
+            "note": "静态文件与文档读均为白名单；POST 体 2MB 封顶"
+          },
+          {
+            "end": "web_kernel",
+            "path": "发行端/community/web/xtgl_core.py",
+            "symbols": [
+              "main() ThreadingHTTPServer 绑定 127.0.0.1"
+            ],
+            "note": "本机限定，不监听外网"
+          },
+          {
+            "end": "cli_engine",
+            "path": "发行端/minimal/output_guard.py + capability.py",
+            "symbols": [
+              "guard",
+              "enforce",
+              "GuardBlocked",
+              "check",
+              "CapDenied"
+            ],
+            "note": "CLI 端输出防护与能力闸（Minimal 端的证据）"
+          }
+        ]
+      },
+      {
+        "id": "cap_diag",
+        "name": "诊断接口",
+        "status": "capable",
+        "evidence": [
+          {
+            "end": "web_kernel",
+            "path": "发行端/community/web/xtgl_core.py",
+            "symbols": [
+              "env_report",
+              "overview",
+              "defects",
+              "last_check"
+            ],
+            "note": "env_report 检 Python/工程/引擎/三层规则/可写；overview.errors 汇总；健康三项 b_check/b_defect/b_log 读真数据源不用代理条件"
+          },
+          {
+            "end": "cli_engine",
+            "path": "发行端/minimal/selfcheck.py + engine.py check --strict",
+            "symbols": [
+              "main",
+              "gates"
+            ],
+            "note": "闸门退出码即诊断结论：fail loud，崩溃的闸门算红"
+          },
+          {
+            "end": "cli_engine",
+            "path": "私有端/10_rac/engine.py",
+            "symbols": [
+              "check --strict / --quick",
+              "audit",
+              "plan",
+              "bump",
+              "show"
+            ],
+            "note": "A8+B59 闸门，ALL PASS 才允许记账"
+          }
+        ]
+      }
+    ]
+  },
+  "distribution_profiles": {
+    "说明": "三份发行配置共用一套 Core 源码，差异只在发行配置与预置内容。物理目录名（私有端 等）不改，品牌落点见 AUDIT_261103.md §4。",
+    "private_end": {
+      "brand_name": "Bumao XTGL Private",
+      "current_dir": "私有端",
+      "preset_content": "个人规则/路径/数据全量：准则 681 条、闸门 A8+B59、个人 web_config、桌面 Flutter 前端（lib/core、screens）",
+      "path_policy": "允许本机绝对路径（paths.dart、web_config 均可写死）；页面展示侧仍走 _tilde 兜底",
+      "rules_source": "rules（真身 z*.json），引擎只读真身",
+      "deliverables": "本机私有仓库 + 桌面 Release；不对外开源，不进隔离扫描范围"
+    },
+    "community": {
+      "brand_name": "Bumao XTGL Community",
+      "current_dir": "发行端/community",
+      "preset_content": "44 条通用规则（rules/*.json）、24 项检查、完整 web 控制台 + demo + 文档（README/TUTORIAL/ARCHITECTURE/ROADMAP）",
+      "path_policy": "个人数据放仓库外 ~/.xtgl（manual.json/goals/short_tasks/web_config.local）；随包 web_config.json 必须为脱敏模板，不得含本机绝对路径（现状未达，见 isolation.findings.F4）",
+      "rules_source": "工程内 rules/ 目录（rules.default.dir），用户可在向导里改指自己的 rules/",
+      "deliverables": "13 个核心文件（以 20_view/web/core_manifest.json 清单为准）+ rules + 文档 + 测试；开源"
+    },
+    "minimal": {
+      "brand_name": "Bumao XTGL Minimal",
+      "current_dir": "发行端/minimal",
+      "preset_content": "无预置规则（只备笔墨，不代立规）：向导生成示例规则 r01_default.json，其余用户自备",
+      "path_policy": "默认相对路径（rules/ 与工程根），任何绝对路径都不得进发行物；个人数据同样走 ~/.xtgl",
+      "rules_source": "用户自备（rules.default.dir = rules，向导建骨架）",
+      "deliverables": "13 个核心文件（kernelsync 自 community）+ engine.py（16 闸）+ 文档；开源"
+    }
+  },
+  "frozen_interfaces": {
+    "core_version": {
+      "constant": "CORE_VERSION",
+      "current_value": "0.10",
+      "format": "^\\d+\\.\\d+$（两段式版本线：系统与内核同号）",
+      "rules": "模块 core 字段 '^0.10' 同该值兼容；CORE_VERSION 变更属契约变更，走 change_control；版本号冻结，无用户明确许可任何人不得改动",
+      "evidence": "xtgl_core.py L30；core_compatible() L324"
+    },
+    "web_api": {
+      "base": "http://127.0.0.1:<port>（ThreadingHTTPServer，本机限定，端口起 cfg.port 向后试 40 个）",
+      "frozen_read_endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/overview",
+          "query": "fast=1 可跳过引擎闸门",
+          "note": "总览：core_version/meta/rules/clauses/conflicts/errors/goals/short_tasks/daiban/logs/clients/manual/health/gates"
+        },
+        {
+          "method": "GET",
+          "path": "/api/detail",
+          "query": "board=goals|short|daiban & id=<[A-Za-z]\\d{1,3}>",
+          "note": "读单条 sidecar 明细"
+        },
+        {
+          "method": "GET",
+          "path": "/api/manual",
+          "note": "人工判定清单（~/.xtgl/manual.json + 默认项合并）"
+        }
+      ],
+      "frozen_write_endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/task/add",
+          "body": "{board, 目标, 阶段?, 状态?, 进度?, 关联工程?, 关联文件?, 下一步?}",
+          "note": "daiban 拒绝；编号自动续（S/G 前缀）"
+        },
+        {
+          "method": "POST",
+          "path": "/api/task/delete",
+          "body": "{board, id}",
+          "note": "只迁不删，搬进 <看板>.archive.txt"
+        },
+        {
+          "method": "POST",
+          "path": "/api/detail",
+          "body": "{board, id, req, prompt, by?}",
+          "note": "写 sidecar"
+        },
+        {
+          "method": "POST",
+          "path": "/api/manual",
+          "body": "{key, ok, label?, verdict?}",
+          "note": "verdict ∈ auto|pass|fail"
+        }
+      ],
+      "current_full_surface": "读：/api/env /api/clauses /api/doc /api/tasks /api/modules /api/goals /api/goals/export /setup /tutorial；写：/api/setup/save /api/setup/scaffold /api/setup/task /api/setup/pick —— 这些随实现演进，不在本版冻结范围，但改动需同步 setup.html/index.html",
+      "error_format": "{\"error\": \"<人读中文文案>\"}；ConfigError→400，未知接口→404，服务端异常→500",
+      "same_origin_header": {
+        "name": "X-XTGL-Setup",
+        "value": "1",
+        "semantics": "所有 POST 必带；仅接受来源 127.0.0.1/::1；服务端不回应 CORS 预检，跨站写天然失败。任何新增写接口必须先过 _same_origin()。"
+      },
+      "evidence": "xtgl_core.py Handler.do_GET L1414 / do_POST L1456 / _same_origin L1398"
+    },
+    "sidecar_detail_json": {
+      "file_naming": "<看板文件同目录同名>.detail.json（goals.txt → goals.detail.json）",
+      "schema": {
+        "version": 1,
+        "items": {
+          "<id>": {
+            "req": "string≤20000",
+            "prompt": "string≤20000",
+            "by": "string≤40 默认 UI",
+            "at": "YYYY-MM-DD HH:MM:SS"
+          }
+        }
+      },
+      "id_rule": "^[A-Za-z]\\d{1,3}$（如 G12 / S3）",
+      "rules": "解析失败按空处理不抛异常；写前 .bak，写后重读校验再 os.replace；明细丢了看板照样能看（看板文件不自含长文）",
+      "evidence": "xtgl_core.py detail_path_of L242 / save_detail L965"
+    },
+    "task_lifecycle": {
+      "boards": "goals（长期）/ short（短期）/ daiban（周期待办，8 列表格只读）",
+      "DONE_WORDS": [
+        "已完成",
+        "已归档",
+        "已关闭"
+      ],
+      "RETIRE_DAYS": 30,
+      "rules": "状态含任一 DONE_WORDS = 完成 → 退出主列表进折叠区；完成日期取「完成于」，缺省退回「复核」；完成满 RETIRE_DAYS 天连折叠区也不显示（文件由 xtgl_clean.py 搬归档）",
+      "evidence": "xtgl_core.py L342-365；xtgl_clean.py"
+    },
+    "executor_normalization": {
+      "rule": "client_name(raw)：空→「未标注」；去掉全角括号及其后缀（（.*$）；去掉半角空格+deepseek 起的后缀（不区分大小写）",
+      "recognized_executors": [
+        "WorkBuddy",
+        "DeepSeek"
+      ],
+      "rules": "web 端 client_name() 与桌面端 logs_screen.dart _clientName 必须同规则，否则同机出现两个客户端名；project_key 以 /40_renwu/<工程名>/ 留档路径为准，不用日志「任务」列",
+      "evidence": "xtgl_core.py L219-235"
+    },
+    "design_tokens_keys": {
+      "file": "design_tokens.json（三端视觉唯一真身）",
+      "keys": [
+        "字体",
+        "灰阶（g0–g8 九级，禁止插值再造色）",
+        "圆角（xl/lg/md/sm/card/pill）",
+        "动效",
+        "主题（white/black）",
+        "玻璃",
+        "组件",
+        "禁忌"
+      ],
+      "meta_keys_note": "_说明/_基准* 为元键；含个人路径的元键不得进开源发行物（见 isolation.findings.F1）",
+      "evidence": "design_tokens.json 全文；改视觉先改这里，再同步 index.html :root 与桌面 theme.dart"
+    },
+    "palette_ids": {
+      "values": [
+        "bumao",
+        "dashan",
+        "qingci",
+        "zheshi",
+        "moyu",
+        "songyan",
+        "juanbai"
+      ],
+      "where": "桌面端 lib/core/theme.dart Palette.id（主题选择器）；web 端以 design_tokens.json 为准",
+      "rules": "id 集合冻结：增删主题 id 属契约变更；改色值不算（改 design_tokens.json 即可）",
+      "evidence": "theme.dart L69/80/91/102/114/125/136"
+    }
+  },
+  "change_control": {
+    "rule": "改任何 frozen_interfaces / core_capabilities.status / distribution_profiles 中的冻结项，必须走本流程，禁止静默改。",
+    "steps": [
+      "1. 提变更：修改本文件对应段落，contract_version 按小数位 +0.1（如 1.0 → 1.1），并在 change_log 记一行",
+      "2. 跑 contract_test 三端：① 隔离扫描（community/minimal 发行物 vs isolation 黑名单）；② kernelsync --check 两开源端清单一致；③ web API 冒烟（冻结端点请求应答结构比对）；④ 三端 engine.py check --strict 各自 ALL PASS",
+      "3. 全绿才允许提交实现；任一红即回滚实现，不许改测试迁就实现",
+      "4. 实现合并后重新生成 core_manifest.json（kernelsync --manifest）并同步两端"
+    ],
+    "versioning": "contract_version 只进不退；行为契约变更 +0.1，仅补证据/文档 +0.01（记录于 change_log，不触发三端全量重跑）",
+    "change_log": [
+      {
+        "version": "1.0",
+        "date": "2026-11-03",
+        "what": "首版冻结：八大能力证据、三发行档、冻结接口面、隔离方案"
+      },
+      {
+        "version": "1.0（勘误）",
+        "date": "2026-11-03",
+        "what": "D1 更名补录：current_dir 三处旧代号→私有端/community/minimal（d1_pizhi_mingming_261103 既定动作漏网补齐）；去除文件 UTF-8 BOM（contract_test A 闸 json.loads 解析失败根因，d1 轮 PowerShell 重写引入）；g8 误覆盖的 community/minimal 引擎已恢复各端原生实现（16656B/8080B），与 meta.note 本轮不合并实现一致。contract_version 保持 1.0（A 闸硬校验值）"
+      },
+      {
+        "version": "1.1",
+        "date": "2026-11-04",
+        "what": "用户选择统一内核路线B：合并为单一 engine.py + 三个薄包装器模式。merge_engine_plan.txt 被否决并标记作废。架构目标：一个核心引擎服务 私有端(61闸)、Community(17闸)、Minimal(17闸)，差异仅在规则包与闸函数定义。"
+      },
+      {
+        "version": "1.2",
+        "date": "2026-11-04",
+        "what": "立法归档：handover_bumao_xtgl_v01_20261104.md / dahuanxue_jinzhihe_duixiang_v02_20261104.md / dahuanxue_duichaogao_20261104.md 追加 [已作废] 尾部标记（不再作为执行依据），现行唯一依据为 dahuanxue_buzhihe_guifan_yuanze_v01_20261104.md + dahuanxue_guifan_buchong_v01_20261104.md。三端 README*.md 更新以反映 BumaoXTGL_*_v01.py wrapper 入口。"
+      },
+      {
+        "version": "1.21",
+        "date": "2026-11-05",
+        "what": "证据对齐（不动行为契约，按 versioning「仅补证据 +0.01」）：① meta.contract_version 1.1→1.2，与 11-04 已记的 1.2 条目对齐——此前契约文件停在 1.1 而 change_log 已有 1.2，违反「只进不退」同源口径；② change_log 排成单调顺序（原「1.0（勘误）」排在「1.0」之前）；③ frozen_interfaces.core_version.current_value 2.2.0→2.2.1，与 xtgl_core.py 的 CORE_VERSION 和 core_manifest.json 的 core_version 当日实物一致；④ contract_test.py A 组删掉写死的 ==\"1.0\"，改为形态校验（版本值以契约自身为准，写死字面量让三端与自测同时假红）；⑤ contract_test.py C 组新增「端上 CORE_VERSION 必须等于契约声明的 current_value」，并把该值纳入 B 组清单同源校验，防再次出现契约记 2.2.0、实物 2.2.1 的静默漂移。"
+      },
+      {
+        "version": "1.22",
+        "date": "2026-11-07",
+        "what": "用户 2026-11-07 令：三端系统版本与内核版本统一为 0.1。frozen_interfaces.core_version.current_value 2.2.1→0.1；modules.json 的 core／min_core 约束 \"^2\"→\"^0\"（core_compatible 只比主版本号，不同步会让模块全判不兼容）；三端 core_manifest.json 重生成。版本号自此冻结：无用户明确许可，任何人不得改动。"
+      },
+      {
+        "version": "1.23",
+        "date": "2026-11-07",
+        "what": "用户 2026-11-07 授权（原话「（原话已脱敏移除）」）：三端系统与内核版本由 0.1 统一升 0.10。current_value 0.1→0.10；三端 meta.version、minimal/10_rac/meta.json、modules.json 的 core／min_core（^0→^0.10，22／21 处）、CORE_VERSION、.bump_state.json.last、三端 core_manifest.json 同步换代。G02 处置采用「放宽」而非「撤掉」：0.10 仍是两段式，与极简端 BumaoXTGL_Minimal_v01.py G02 原三段式正则 r\"^\\d+\\.\\d+\\.\\d+$\" 互斥，授权将其放宽为 r\"^\\d+\\.\\d+(?:\\.\\d+)?$\"（两段或三段皆受）；理由是不放宽会让合规的 0.10 被判红，撤掉则失去版本形态校验。除此之外未放宽任何其他判据。"
+      }
+    ]
+  },
+  "isolation": {
+    "purpose": "保证 community/minimal 发行物中不出现任何个人痕迹。隔离扫描所需的字面黑名单由本地工具 contract_test.py 的 LITERAL_TOKENS 提供（本地工具，不发布），本文件不再携带本机标识。",
+    "blacklist_tokens_note": "字面黑名单（本机用户名、盘内根目录、个人目录名等）已迁至本地工具，不随公开仓发布。",
+    "allowlist": [
+      {
+        "location": "setup.html 第 66 行 placeholder",
+        "pattern": "Users/<占位用户>",
+        "reason": "字面「你」是通用示例占位符，非本机用户名；豁免"
+      },
+      {
+        "location": "xtgl_core.py layer_path() docstring（约 L447）",
+        "pattern": "rules",
+        "reason": "说明 v1 规则目录语义的通用表述，只提相对目录名，无个人身份信息；豁免（P2 建议改为措辞更中性的「引擎目录下的规则子目录」）"
+      },
+      {
+        "location": "web_config.json（两开源端）中 rules.default.dir = rules",
+        "pattern": "rules",
+        "reason": "这是发行版自己的目录名，与个人版同名纯属历史巧合；豁免，但仅限该字段取值"
+      }
+    ],
+    "scan_scope": {
+      "targets": "community/minimal 两端发行物：13 个核心文件（以 20_view/web/core_manifest.json 清单为准）+ web_config.json + qidong_kongzhitai.bat + README*/TUTORIAL*/ARCHITECTURE/ROADMAP/CHANGELOG/COMPLIANCE + rules/*.json + demo/ + tests/ + XINSHOU-ZHINAN.txt",
+      "exclusions": [
+        "__pycache__/",
+        "*.bak*（同时 .bak 文件出现在发行物清单中本身要告警）",
+        "core_manifest.json 自身（哈希清单无路径文本）"
+      ],
+      "private_edition": "私有端 与桌面端不在扫描范围（私有端合法持有私有路径）"
+    },
+    "exit_codes": {
+      "0": "干净（仅允许 allowlist 命中）",
+      "1": "发现黑名单命中且无 allowlist 条目（列出 文件:行:token）",
+      "2": "扫描器自身错误或 core_manifest.json 与实际文件漂移"
+    },
+    "findings": {
+      "F1": {
+        "where": "design_tokens.json 第 3 行 _基准工程（个人绝对路径，主机侧具体值不在发布件复述）",
+        "decision": "必须清洗：开源发行物中该键改为不含路径的描述（如 _基准工程: 个人主页工程 styles/index.css，2026-11-03 用户确认），或直接删除；本机保留完整值。因 design_tokens.json 在 12 文件 SAME 清单内，清洗须走 kernelsync --sync-from 一次同步两端并重生成 manifest"
+      },
+      "F2": {
+        "where": "xtgl_core.py layer_path() docstring 约 L447「rules」",
+        "decision": "豁免。理由：这是对 v1 配置语义（规则目录相对引擎目录）的通用说明，rules 在 community 端本身就是真实目录名，不含任何个人身份信息。列为 P2 文字优化项，非隔离缺陷"
+      },
+      "F3": {
+        "where": "setup.html 第 66 行 placeholder（用户目录示例占位符）",
+        "decision": "豁免。理由：字面「你」是给最终用户的示例占位符，与黑名单的「用户目录实路径」模式不构成真实命中；隔离扫描将其列入 allowlist"
+      },
+      "F4": {
+        "where": "两开源端 web_config.json 的 daiban/defects/check_log_dir 三键均为本机绝对路径（私有端数据、私有端、私有端自检数据）",
+        "decision": "必须整改（本轮新增发现）：发行版 web_config.json 应改为空串或相对占位，个人值移入 web_config.local.json（该文件已设计为不进发行包）。整改前禁止对外打包"
+      }
+    }
+  }
+}

@@ -18,7 +18,7 @@ Zero-rule skeleton of Bumao XTGL: 28 structural checks, your rules, stdlib only.
 ## Quick start (30 seconds)
 
 ```bash
-git clone -b <release-tag> https://github.com/Bumao-Ai/Bumao-xtgl-minimal.git
+git clone -b v0.13 https://github.com/Bumao-Ai/Bumao-xtgl-minimal.git
 cd Bumao-xtgl-minimal/10_rac
 python BumaoXTGL_Minimal_v01.py whoami
 python BumaoXTGL_Minimal_v01.py check --strict   # exit code is the verdict
@@ -26,19 +26,19 @@ python BumaoXTGL_Minimal_v01.py check --strict   # exit code is the verdict
 
 Add your rules by dropping chapter files into `10_rac/` and following the loader in `rules_db.py`; `render.py` regenerates the views. `zero_rules` is declared in `00_meta/meta.json`, so the skeleton passes without inventing content.
 
-`<release-tag>` is the tag of the release you install; see Releases and verify with `SHA256SUMS`.
+`v0.13` is the tag this README was released with; see Releases and verify the zip with `SHA256SUMS`.
 
 ## Proof of work
 
 | Item | Value | Source |
 |---|---|---|
-| Commits at `v0.12` | 6 | `git rev-list --count v0.12` |
+| Commits at `v0.13` | 9 | `git rev-list --count v0.13` |
 | Last commit | 2026-11-08 | `git log -1 --date=short` |
 | Rules | 0 (declared) | `check --strict` → `0 ch / 0 cls (zero_rules declared)` |
 | Check items | 28 | `check --strict` conclusion (`2/28 gates red`) |
 | Reverse cases | 5 | `10_rac/tests/test_reverse.py`; last run 5/5 pass |
 | Defect ledger | 0 real closed items | `30_taizhang/quexian_taizhang.txt` holds 2 sanitized sample rows |
-| Releases | 4 tags, `v0.1` → `v0.12`, all 2026-11-08 | `git tag` |
+| Releases | 5 tags, `v0.1` → `v0.13`, all 2026-11-08 | `git tag` |
 | Changelog | [CHANGELOG.md](CHANGELOG.md) | — |
 
 `A10` and `A13` are red on a public clone by design: they check an approval ledger and a quoted authorization, and this edition ships no approval samples. They are marked *not applicable*, not passed.
@@ -94,7 +94,6 @@ Total: 12 structure checks + 16 kernel checks = **28 checks**.
 30_taizhang/  ledgers and baselines
 90_lishi/     history
 kernel/       bundled bumao_core
-assets/       logos
 docs/screens/ screenshots used in this README
 ```
 
