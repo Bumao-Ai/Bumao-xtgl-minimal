@@ -32,7 +32,7 @@ Add your rules by dropping chapter files into `10_rac/` and following the loader
 
 | Item | Value | Source |
 |---|---|---|
-| Commits | 6 | `git rev-list --count HEAD` (before this facade commit) |
+| Commits at `v0.12` | 6 | `git rev-list --count v0.12` |
 | Last commit | 2026-11-08 | `git log -1 --date=short` |
 | Rules | 0 (declared) | `check --strict` → `0 ch / 0 cls (zero_rules declared)` |
 | Check items | 28 | `check --strict` conclusion (`2/28 gates red`) |
