@@ -1,5 +1,5 @@
 Bumao XTGL Minimal
 Copyright 2026 Bumao
 
-This product includes the Bumao Core kernel (not bundled; provided by the bumao-core repository).
+This product includes the Bumao Core kernel (bundled with this repository under kernel/bumao_core).
 This product includes the Bumao XTGL web console.
