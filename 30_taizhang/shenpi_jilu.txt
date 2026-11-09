@@ -71,3 +71,15 @@ README 英文侧应用内版本、克隆 tag、A10 段与随附条目数按实�
 范围：README.md、00_meta/meta.json、10_rac/meta.json、CHANGELOG.md、10_rac/views/（render 重渲染 3 件）、30_taizhang/shenpi_jilu.txt。
 授权来源：本日「授权」原话（公开仓按脱敏口径只录授权词，句子全文存本机留档，不入公开件）；
 本轮发版依据为当日两条指令「加 0.01」「再出一版并更新文案、维护暂停照写、不定时更新」，指令原文同按脱敏口径不入公开件。
+
+【第 10 号】 2026-11-09
+用户批准原文：「授权」
+说明：本版只改对外自述与 0.2 第②项状态、同步版本号与计数，不改判据、不改核心件集合、不动 kernel/。
+②执行中监管改为实跑口径：2026-11-09 在 community、minimal 两活区各跑一次中途越界中断（序列执行中单外改动，
+下一次动作前以 EXTERNAL_DRIFT 中断并生成证据包 halt.json／diff.txt／账本快照／manifest.sha256；恢复须先 recover
+再经人工批准 resume 才能继续），shenji 按 op_id 导出动作链；personal 沿用当日早间演练留证，未重跑。
+README 双语 Roadmap 第 2 条按上述实跑改写；维护暂停段照旧，并注明最终暂停版未定、不定时更新。
+发布 tag v0.21→v0.22、tag 总数 13→14、当日条目 9→10；00_meta/meta.json 与 10_rac/meta.json 应用内版本同时 0.33→0.34。
+范围：README.md、00_meta/meta.json、10_rac/meta.json、CHANGELOG.md、10_rac/views/（render 重渲染 3 件）、30_taizhang/shenpi_jilu.txt。
+授权来源：本日「授权」原话（公开仓按脱敏口径只录授权词，句子全文存本机留档，不入公开件）；
+本轮发版依据为当日发版与执行中监管指令，指令原文同按脱敏口径不入公开件。

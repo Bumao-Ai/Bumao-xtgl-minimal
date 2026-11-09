@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.34 — 2026-11-09
+
+本版只改对外自述与版本号，不改判据、不改核心件集合，也不动 `kernel/`。
+
+- **加号依据：0.33→0.34（+0.01 同档正常晋升）** — 依据 `HX\personal\20_view\di00_qidong_zongze.txt` L55—60 的 0.6.8 规则；随包内核仍 core `v0.2.6`，不跨档再加号。
+- **②执行中监管改为实跑口径** — README 双语 Roadmap 第 2 条改写为 2026-11-09 的真实复跑：动作级记录（`op_id`／目标／结果）之外，序列执行中有人在单外改动，下一次动作前即以 `EXTERNAL_DRIFT` 中断，生成证据包（`halt.json`／`diff.txt`／账本快照／`manifest.sha256`）；恢复须先 recover 再经人工批准 resume 才能继续。绕过入口只记为「仅事后可查」，不计入已覆盖。
+- **本轮复跑范围** — `community`、`minimal` 两个活区各跑一次中途越界中断（halt → recover → resume → done 全过，`shenji` 按 `op_id` 导出动作链）；`personal` 沿用当日早间演练留证，未重跑。
+- **计数与版本同步** — 发布 tag 由 `v0.21` 改为 `v0.22`，tag 总数 13→14；随附 2026-11-09 授权条目 9→10；`00_meta/meta.json` 与 `10_rac/meta.json` 的应用内版本同时 0.33→0.34。
+- **维护暂停** — 每版照旧写「维护暂停，稳定可用」；哪一版才算最终暂停版尚未确定，因此仍按不定时更新发布。
+- **未变** — 规则 0 条（声明式）、检查项 28；A10／A13 判据不变；`check --strict` 仍 `ALL PASS（A段 12 项 + B段 16 项）`。
+
+**English**
+- Documentation and version strings only; no verdict, no core-file-set change, `kernel/` untouched.
+- Item ② (mid-execution supervision) in the bilingual roadmap now records the real 2026-11-09 replay: on top of action-level records (`op_id` / target / result), an out-of-order change made from outside the entry while a sequence is running interrupts the next action with an `EXTERNAL_DRIFT` evidence bundle (`halt.json` / `diff.txt` / ledger snapshot / `manifest.sha256`); resuming requires recover plus a human approval. A bypass is recorded as post-hoc searchable only and never counted as covered.
+- Replayed live this round on `community` and `minimal` (halt → recover → resume → done, with `shenji` exporting the action chain by `op_id`); `personal` keeps its earlier same-day drill evidence and was not re-run.
+- Counts and versions synced: release tag `v0.21` → `v0.22`, 13 → 14 tags, 9 → 10 authorization entries dated 2026-11-09, in-app version 0.33 → 0.34 in both `00_meta/meta.json` and `10_rac/meta.json`.
+- The maintenance-pause line is kept in every release, noting that the final paused release is undecided and releases continue at irregular intervals.
+- Unchanged: 0 rules (declarative), 28 checks, and the A10 / A13 verdicts.
+
 ## 0.33 — 2026-11-09
 
 本版只改对外自述与版本号，不改判据、不改核心件集合，也不动 `kernel/`。
