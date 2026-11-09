@@ -309,3 +309,27 @@ import engine
 | `portability_probe.py` | 内部可迁移性探针：按内部目录树与本机临时区布局编写，含主机绝对路径形态；脱敏即失去原功能，故不随包。 |
 
 契约内的核心件（`CORE_FILES`）仍是硬依赖：缺一件、空一件、编译不过一件，都判 FAIL。
+
+---
+
+## 十一、随包运行层（`bumao_core/jiancha/`，0.2.2 起）
+
+运行层是「执行中监管」的实现，**随包但不参与内核判定**：`engine.py` 不导入它，`selftest --kernel` 与 `contract_test.py` 不依赖它。
+
+```
+bumao_core/jiancha/
+  supervisor.py        中断 / 恢复 / 停机状态机
+  ledger.py            只追加、带哈希链的动作账本
+  scope.py             in_scope / 冻结区 / 区根外入口解析
+  reasons.py           错误码查表
+  qingli.py            证据束与基线的留存清理
+  personal_adapter.py  宿主布局适配器（裸仓不生效）
+  gate_check.py        宿主闸门 A/B 自检（依赖宿主布局）
+  jiancha_canshu.json  运行参数
+  schema/reason_codes.json 错误码表（含 RESTORE_FAILED）
+```
+
+- **默认关闭（0.2.2 起有装载器）**：`bumao_core.jiancha.loader.load_if_enabled()` 仅在 `BUMO_JIANCHA_MODE` 为 `shadow`／`enforce` 时加载；未设、`off`、未知值一律返回 `None`，不建目录、不写账。`engine.py` 不导入运行层。
+- **相对导入**：包内一律 `from . import ...`。宿主 `10_rac/` 下已有同名 `ledger.py`（另一套账本），不得用 `sys.path` 插入后绝对导入，否则会顶掉宿主模块。
+- **契约边界**：运行层不改变宿主必须实现的 12 个成员，也不改变任何内核判定；它只消费宿主注入的事件与文件树。
+- **状态口径**：恢复遇失败即中止整轮、已恢复件保留；不新增 `partial` 状态；失败码 `RESTORE_FAILED`。

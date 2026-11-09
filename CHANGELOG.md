@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.28 — 2026-11-09
+
+本版同步 core `v0.2.2`（commit `06d78fb`）随包内核，并把应用内版本补齐到发布序列号。Kernel sync to core v0.2.2; in-app version back-filled to the release series.
+
+- **加号依据：0.17→0.18（+0.01 正常晋升）→0.28（+0.10 内核跨档 0.1→0.2，同一版内叠加）** — 依据 `HX\personal\20_view\di00_qidong_zongze.txt` L55—60 的 0.6.8 逐级加号规则，不跳号、不跨级。
+- **应用内版本 `0.10` → `0.28`** — 生效声明 `00_meta/meta.json` 与执行器实际读取的 `10_rac/meta.json` 同步；`README.md` 两个版本空间说明同步。
+- **随包内核同步到 core `v0.2.2`** — 以 tag 内容为准，非工作树拷贝；整目录覆盖 `kernel/bumao_core/`，新增 `host_reference.py`、`test_a10_policy.py`、`test_gate_registry.py` 与 `jiancha/` 运行层子包。
+- **未变** — 规则 0 条／28 项检查；`A10`／`A13` 判定逻辑与判据输入一字未动。
+
 ## 0.17 — 2026-11-09
 
 本版只做内核同步，不新增规则、不放宽任何判定；**是本阶段的最后一个版本**，未来一个月不再主动迭代（只做维护与修复）。Kernel sync only; this is the last release of this phase.

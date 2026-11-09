@@ -1,0 +1,263 @@
+{
+  "schema": "reason_codes/1",
+  "title": "意图单（intent/1）拒绝理由码表",
+  "description": "只此一份。票面 error_code、动作记录 error_code、导出函数都引用这里的码；文档只做索引，不另立一套。stage=load 装载期即拒（不落动作账）；action 动作前/动作后；integration 接入层。",
+  "codes": [
+    {
+      "code": "NO_ORDER",
+      "stage": "load",
+      "zh": "意图单缺失或是空的",
+      "when": "路径不存在、文件为空、或 order 为 null",
+      "effect": "装载即拒，不建立轮次",
+      "ticket": true
+    },
+    {
+      "code": "ORDER_UNPARSABLE",
+      "stage": "load",
+      "zh": "意图单不是合法 JSON",
+      "when": "json.load 抛 ValueError/OSError",
+      "effect": "装载即拒",
+      "ticket": true
+    },
+    {
+      "code": "ORDER_NOT_OBJECT",
+      "stage": "load",
+      "zh": "意图单不是对象",
+      "when": "顶层是数组/字符串/数字",
+      "effect": "装载即拒",
+      "ticket": true
+    },
+    {
+      "code": "INVALID_SCHEMA",
+      "stage": "load",
+      "zh": "schema 不是 intent/1",
+      "when": "schema 字段缺失或取值不同",
+      "effect": "装载即拒",
+      "ticket": true
+    },
+    {
+      "code": "ORDER_FIELD_MISSING",
+      "stage": "load",
+      "zh": "必填字段缺失或为空",
+      "when": "order_id/workspace/approved_at 任一为空（approved_by 另有 NO_APPROVER）",
+      "effect": "装载即拒",
+      "ticket": true
+    },
+    {
+      "code": "NO_APPROVER",
+      "stage": "load",
+      "zh": "未批准单：approved_by 为空",
+      "when": "approved_by 缺失、空串或纯空白",
+      "effect": "装载即拒（不许无批准人执行）",
+      "ticket": true
+    },
+    {
+      "code": "EMPTY_APPROVAL_SET",
+      "stage": "load",
+      "zh": "批准的目标集合为空",
+      "when": "approved_roots 与 approved_files 同时为空",
+      "effect": "装载即拒（既不批目录也不批文件，等于没批）",
+      "ticket": true
+    },
+    {
+      "code": "INVALID_APPROVED_PATH",
+      "stage": "load",
+      "zh": "批准路径形态非法",
+      "when": "approved_roots/approved_files 含绝对路径、盘符、.. 段、NUL",
+      "effect": "装载即拒（形态歧义不留到运行期）",
+      "ticket": true
+    },
+    {
+      "code": "NO_ALLOWED_ACTIONS",
+      "stage": "load",
+      "zh": "allowed_actions 缺失或为空",
+      "when": "字段不是列表，或列表为空",
+      "effect": "装载即拒（未声明可用动作类型）",
+      "ticket": true
+    },
+    {
+      "code": "INVALID_ACTION_TYPE",
+      "stage": "load",
+      "zh": "allowed_actions 里含未知动作类型",
+      "when": "取值不在 file_read/file_write/cmd_exec/batch_exec",
+      "effect": "装载即拒",
+      "ticket": true
+    },
+    {
+      "code": "INVALID_WORKSPACE",
+      "stage": "load",
+      "zh": "workspace 形态非法",
+      "when": "空串、绝对路径、盘符、含 .. 段或 NUL",
+      "effect": "装载即拒",
+      "ticket": true
+    },
+    {
+      "code": "WORKSPACE_OUTSIDE_ROOT",
+      "stage": "load",
+      "zh": "workspace 解析后越出沙盒根",
+      "when": "commonpath 判定不在根下（跨盘/符号链接式越根）",
+      "effect": "装载即拒",
+      "ticket": true
+    },
+    {
+      "code": "INVALID_EXPIRES_AT",
+      "stage": "load",
+      "zh": "expires_at 格式非法或超出上限",
+      "when": "非空但不是 YYYY-MM-DD HH:MM:SS、日期不存在、早于 approved_at，或有效期超过 24 小时",
+      "effect": "装载即拒（空串在沙盒/demo_only 下表示不设过期；live 另有 LIVE_EXPIRES_REQUIRED）",
+      "ticket": true
+    },
+    {
+      "code": "LIVE_EXPIRES_REQUIRED",
+      "stage": "load",
+      "zh": "live 单据缺 expires_at",
+      "when": "live 且 demo_only=false 时 expires_at 为空",
+      "effect": "装载即拒；逾时不得自动续签，须重新签发",
+      "ticket": true
+    },
+    {
+      "code": "PROXY_QUOTE_MISSING",
+      "stage": "load",
+      "zh": "代理代签未附用户原话",
+      "when": "note 含「代理代签」但没有引号内的用户原话（至少 2 字）",
+      "effect": "装载即拒；合规代签在导出中标为弱授权，不计入独立审批",
+      "ticket": true
+    },
+    {
+      "code": "INVALID_TICKET_TID",
+      "stage": "load",
+      "zh": "ticket_tid 形态非法",
+      "when": "非空但不是 16 位十六进制（sha256 前 16 位）",
+      "effect": "装载即拒",
+      "ticket": true
+    },
+    {
+      "code": "ORDER_EXPIRED",
+      "stage": "action",
+      "zh": "意图单已过期",
+      "when": "当前时间晚于 expires_at",
+      "effect": "动作前拒，写 denied 记录并中断",
+      "ticket": true
+    },
+    {
+      "code": "ACTION_TYPE_NOT_ALLOWED",
+      "stage": "action",
+      "zh": "动作类型不在批准清单",
+      "when": "本次动作类型不在 allowed_actions",
+      "effect": "动作前拒，写 denied 记录并中断",
+      "ticket": true
+    },
+    {
+      "code": "TARGET_FORM_INVALID",
+      "stage": "action",
+      "zh": "目标路径形态非法",
+      "when": "目标为空、绝对路径、盘符、含 .. 段、NUL",
+      "effect": "动作前拒，写 denied 记录并中断",
+      "ticket": true
+    },
+    {
+      "code": "TARGET_OUTSIDE_WORKSPACE",
+      "stage": "action",
+      "zh": "目标实际解析越出 workspace",
+      "when": "commonpath 判定越根，或目标盘符与 workspace 不同",
+      "effect": "动作前拒，写 denied 记录并中断",
+      "ticket": true
+    },
+    {
+      "code": "OUT_OF_SCOPE",
+      "stage": "action",
+      "zh": "目标不在批准集合内",
+      "when": "不在 approved_roots/approved_files；或命中 denied_zones（细因写在 reason/scope.reason）",
+      "effect": "动作前拒，写 denied 记录并中断",
+      "ticket": true
+    },
+    {
+      "code": "BASELINE_DRIFT",
+      "stage": "action",
+      "zh": "目标在动作前已偏离上次检查点",
+      "when": "文件哈希与 last_snapshot 不一致，或已被入口外删除",
+      "effect": "动作前拒，写 denied 记录并中断",
+      "ticket": true
+    },
+    {
+      "code": "TICKET_MISSING",
+      "stage": "action",
+      "zh": "没有可关联的 rc=0 绿票",
+      "when": "force_ticket=true 且票本里取不到 rc=0 真票",
+      "effect": "动作前拒，写 denied 记录并中断",
+      "ticket": true
+    },
+    {
+      "code": "HALTED",
+      "stage": "action",
+      "zh": "监管已中断，未批准恢复前拒绝执行",
+      "when": "状态为 halted 且未 recover+resume",
+      "effect": "动作前拒（不再新建证据包）",
+      "ticket": true
+    },
+    {
+      "code": "SIDE_EFFECT_DETECTED",
+      "stage": "action",
+      "zh": "动作窗口内出现未声明的额外汇出",
+      "when": "S1 扫描发现声明目标之外的变更",
+      "effect": "动作后中断后续，已落盘产物另行隔离/恢复",
+      "ticket": true
+    },
+    {
+      "code": "WRITE_MISMATCH",
+      "stage": "action",
+      "zh": "落盘内容与预期哈希不符",
+      "when": "S1 比对目标哈希与预期不一致，或目标消失",
+      "effect": "动作后中断后续",
+      "ticket": true
+    },
+    {
+      "code": "EXTERNAL_DRIFT",
+      "stage": "action",
+      "zh": "周期断言发现经本入口之外的改动",
+      "when": "P 比对「上次快照 vs 当前快照」发现变更",
+      "effect": "拦下一步；已发生的改动无法撤销",
+      "ticket": true
+    },
+    {
+      "code": "INTERNAL_ERROR",
+      "stage": "action",
+      "zh": "监管自身异常",
+      "when": "监管代码抛非预期异常（失败关闭）",
+      "effect": "记录后中断，不当普通异常放过",
+      "ticket": true
+    },
+    {
+      "code": "TOOL_ERROR",
+      "stage": "integration",
+      "zh": "工具自身报错（非越界）",
+      "when": "接入层传入的 handler 报错",
+      "effect": "记 result=error；S1 仍按窗口扫描",
+      "ticket": true
+    },
+    {
+      "code": "UNMAPPED_TOOL",
+      "stage": "integration",
+      "zh": "工具未登记动作映射（默认拒绝）",
+      "when": "接入层遇到未在映射表里的工具",
+      "effect": "enforce 拒；shadow 执行但 covered=false",
+      "ticket": true
+    },
+    {
+      "code": "GATE_NOT_PASSED",
+      "stage": "integration",
+      "zh": "A/B 闸门未通过或结论过期",
+      "when": "gate_ref 缺失、verdict≠PASS、或关键文件指纹已变",
+      "effect": "blocked：写类工具直接拒",
+      "ticket": true
+    },
+    {
+      "code": "RESTORE_FAILED",
+      "stage": "action",
+      "zh": "恢复时基线副本缺失，未能回滚",
+      "when": "中断后 recover_restore 找不到基线副本，或写回后哈希与基线不符",
+      "effect": "该轮记 recovery=fail；不置 recovered，须人工处理后重试",
+      "ticket": true
+    }
+  ]
+}

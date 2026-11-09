@@ -371,10 +371,19 @@ def _round_auth_gate(kdir, entry):
             except Exception as _e:
                 return False, "A13 基线读取失败：%r" % _e
         current = {}
+        skipped_cross_drive = 0
+        _hx_drive = os.path.splitdrive(hx)[0].lower()
         for _p in scope:
+            # 跨盘符的入口不在区根下：os.path.relpath 在 Windows 会抛 ValueError。
+            # 这类件按「区根外入口」跳过，不参与本轮比对，只在结论里点名件数。
+            if os.path.splitdrive(_p)[0].lower() != _hx_drive:
+                skipped_cross_drive += 1
+                continue
             current[os.path.relpath(_p, hx).replace("\\", "/")] = _sha256_file(_p)
         today = time.strftime("%Y-%m-%d")
         ok, detail, files_new, seeded = round_auth_verdict(base, current, text, today)
+        if skipped_cross_drive:
+            detail = "%s；跳过区根外入口 %d 件（与区根不同盘符）" % (detail, skipped_cross_drive)
         if ok and files_new != base:
             try:
                 os.makedirs(_meta, exist_ok=True)
@@ -645,7 +654,8 @@ def cmd_check(strict=False, quick=False):
         return 0
     else:
         print("FAIL (%d/%d gates red%s)" % (
-            nfail, len(out.rows), "；quick 未跑 B/Z" if quick else ""))
+            nfail, len(out.rows),
+            "；quick 仅 A 段，B/Z 未跑 —— 不能替代 check --strict" if quick else ""))
         # 票面 rc 必须与结论一致：结论 FAIL 即 rc 非 0，不因缺 --strict 而报成功。
         return 1
 

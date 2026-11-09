@@ -1,0 +1,32 @@
+{
+  "_说明": "personal 端执行中监管参数件（live）。路径一律相对本端根 GCML 解析，不写死盘符；票本只读引用，不改不写。",
+  "schema": "act/1",
+  "env": "",
+  "_env_note": "留空即 live（fail-closed）：expires_at 必填且有效期 ≤24 小时。只有显式写 sandbox 才放宽（沙盒测试用）。",
+  "chain_seed": "ACT-GENESIS-personal-v0.2-261108",
+  "ledger": "actions.jsonl",
+  "baseline_dir": "baseline",
+  "ticket_ledger": "HX/personal/10_rac/check_lvpiao.jsonl",
+  "_ticket_ledger_note": "只读引用现有绿票账本（lvpiao/2）；本模块不签票、不写票本、不领用票。",
+  "force_ticket": true,
+  "_force_ticket_note": "true＝动作前必须能解析到一张 rc=0 的现有绿票。",
+  "watch_scope": "jiancha_selftest",
+  "_watch_scope_note": "运行期监视根（相对 workspace）。本值只服务 2026-11-08 受控验证：L4/L3 闸口每次调用都会往 logs 根写 capability_audit.txt／output_guard_audit.txt，若监视整棵 logs 会把「本次调用自己的审计」误判成 EXTERNAL_DRIFT。生产接单时应把 workspace 设成任务沙盒、把本字段改回 '.'。",
+  "denied_zones": ["_frozen", "90_lishi", "00_meta", ".git", "secret"],
+  "action_types": [
+    "order_begin", "file_read", "file_write", "cmd_exec", "batch_exec",
+    "periodic_check", "recovery", "resume", "halt", "done"
+  ],
+  "halt_exit_code": 3,
+  "reverse_case_min": 10,
+  "order_path": "order.json",
+  "run_dir": "00_PROFILE/jiancha_run",
+  "gate_ref": "gate_ref.json",
+  "qingli": {
+    "enabled": true,
+    "min_age_hours": 1,
+    "keep_evidence": 10,
+    "max_total_mb": 400,
+    "_note": "enforce 轮次产物自动清理：只删 run_dir 下 baseline 与超龄证据束（halt_*／quarantine/*），账本 actions.jsonl、state.json 与票本永不参与；该轮有 halt/quarantine 证据束时 baseline 与证据束同寿命（用户 2026-11-08 审核口径），没拦过事的轮次才只留当前一份；running 一律跳过；触发点在 Supervisor.begin 之前。手工 dry-run：python -m jiancha.qingli --run-dir <run_dir>。"
+  }
+}
