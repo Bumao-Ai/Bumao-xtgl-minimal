@@ -11,7 +11,7 @@
 
 ## 0.28 — 2026-11-09
 
-本版同步 core `v0.2.2`（commit `06d78fb`）随包内核，并把应用内版本补齐到发布序列号。Kernel sync to core v0.2.2; in-app version back-filled to the release series.
+本版同步 core `v0.2.2`（commit `140d304`）随包内核，并把应用内版本补齐到发布序列号。Kernel sync to core v0.2.2; in-app version back-filled to the release series.
 
 - **加号依据：0.17→0.18（+0.01 正常晋升）→0.28（+0.10 内核跨档 0.1→0.2，同一版内叠加）** — 依据 `HX\personal\20_view\di00_qidong_zongze.txt` L55—60 的 0.6.8 逐级加号规则，不跳号、不跨级。
 - **应用内版本 `0.10` → `0.28`** — 生效声明 `00_meta/meta.json` 与执行器实际读取的 `10_rac/meta.json` 同步；`README.md` 两个版本空间说明同步。
