@@ -38,3 +38,10 @@
 【第 5 号】 2026-11-09
 用户批准原文：「授权」
 说明：本轮 2026-11-09 随 core v0.2.5 改动覆盖：kernel/bumao_core/test_jiancha_ledger.py、test_jiancha_recovery.py、jiancha/ledger.py、jiancha/qingli.py、jiancha/supervisor.py、__init__.py、10_rac/meta.json。
+
+【第 6 号】 2026-11-09
+用户批准原文：「授权」
+说明：本轮线上仓全量脱敏：把用户原话字面替换为脱敏标记，保留条目编号／日期／范围／处置与授权词。不改判据、不改测试行为、不改布局配色。原话改前件已备份至本机私有区，不进任何仓。
+范围：20_view/web/index.html、kernel/kernel_contract.json、30_taizhang/shenpi_jilu.txt、kernel/bumao_core/gate_registry.py。
+补充范围说明：kernel/bumao_core/gate_registry.py 内容与改写前原件逐字节相同（sha256 前16位 e96497a4e6106a33）；历史改写后检出按仓内 LF 归一，工作区行尾由 CRLF 变为 LF，故字节哈希变化。该件属本轮线上仓脱敏与历史清除范围，授权来源为本册第 1 号当日授权词（范围性授权）。
+授权来源：本日已登记之授权词（本册第 1 号）；本轮为线上仓脱敏与历史原话清除。
