@@ -45,3 +45,11 @@
 范围：20_view/web/index.html、kernel/kernel_contract.json、30_taizhang/shenpi_jilu.txt、kernel/bumao_core/gate_registry.py。
 补充范围说明：kernel/bumao_core/gate_registry.py 内容与改写前原件逐字节相同（sha256 前16位 e96497a4e6106a33）；历史改写后检出按仓内 LF 归一，工作区行尾由 CRLF 变为 LF，故字节哈希变化。该件属本轮线上仓脱敏与历史清除范围，授权来源为本册第 1 号当日授权词（范围性授权）。
 授权来源：本日已登记之授权词（本册第 1 号）；本轮为线上仓脱敏与历史原话清除。
+
+【第 7 号】 2026-11-09
+用户批准原文：「授权」
+说明：本轮同步 core v0.2.6——A13 基线按端分文件存放（00_meta/a13_benlun_jizhun.<端键>.json），
+首次纳入基线时结论行明写「未授权基线建立」；A13 判定口径未改，闸门总数不变。
+范围：kernel/bumao_core/engine.py、kernel/bumao_core/__init__.py、00_meta/meta.json、CHANGELOG.md、
+README.md、README-HX.txt、20_view/（render 重渲染）、90_lishi/gongkai_weihu_261107/engine.py.261109_pre_0.2.6.bak、
+90_lishi/gongkai_weihu_261107/__init__.py.261109_pre_0.2.6.bak、.gitignore。

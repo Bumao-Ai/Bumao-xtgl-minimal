@@ -275,8 +275,11 @@ def round_auth_verdict(baseline_files, current, ledger_text, today, auth_words=N
         elif str(_old.get("sha") or "") != str(_sha):
             changed.append((_rel, _sha, _old))
     if not changed:
-        return (True, "本轮无核心件改动（比对 %d 件，新纳入基线 %d 件）" % (
-            len(current or {}), seeded), new, seeded)
+        if seeded:
+            return (True, "本轮无核心件改动（比对 %d 件；其中 %d 件本次首次纳入基线，"
+                          "属未授权基线建立，不以「无改动」冒充已授权）" % (
+                              len(current or {}), seeded), new, seeded)
+        return (True, "本轮无核心件改动（比对 %d 件）" % len(current or {}), new, seeded)
     if not (ledger_text or "").strip():
         return (False, "有 %d 件核心件改动，但审批册为空，无从引授权原话" % len(changed),
                 new, seeded)
@@ -344,12 +347,36 @@ def _round_scope(kdir, entry):
     return sorted(set(scope)), hx
 
 
+def _scope_key(hx, entry):
+    """A13 基线的分端键：由入口位置推导，不写死任何端名。
+
+    单仓 clone 或无入口时归 "shared"；入口在本区根之下时取「入口所属产品目录
+    相对区根的路径」（如 <区根>/<产品>/10_rac/x.py → "<产品>"）。各端各存一份
+    基线，避免先跑的一端把另一端未授权的改动顺手写进同一份基线。
+    """
+    if not entry:
+        return "shared"
+    try:
+        _prod = os.path.dirname(os.path.dirname(os.path.abspath(entry)))
+        _rel = os.path.relpath(_prod, hx).replace("\\", "/")
+    except (ValueError, OSError):
+        return "shared"
+    if _rel.startswith(".."):
+        return "shared"
+    _rel = _rel.strip("/")
+    if _rel in ("", "."):
+        return "root"
+    _key = re.sub(r"[^0-9A-Za-z_.-]+", "_", _rel).strip("._")
+    return _key or "shared"
+
+
 def _round_auth_gate(kdir, entry):
     """A13 本轮改动授权闸：自上次检查以来改过的核心件，必须引当日用户授权原文。
 
     立闸原因：Q001——存量 A8（形态）＋B60（重大错误册）都只校验交付物形态，
     没有任何一项校验「本轮改动是否经用户授权」，2026-11-04 才出现越界改 11 处。
-    状态基线落在审批册同端的 00_meta，不进 30_taizhang（台账白名单只管 .txt）。
+    状态基线按端分文件落在审批册同端的 00_meta（a13_benlun_jizhun.<端>.json），
+    不进 30_taizhang（台账白名单只管 .txt）；端键由入口位置推导，内核不认端名。
     """
     try:
         _gr = _import_gate_registry(kdir)
@@ -362,7 +389,8 @@ def _round_auth_gate(kdir, entry):
         with open(ledger, encoding="utf-8-sig") as _f:
             text = _f.read()
         _meta = os.path.join(os.path.dirname(os.path.dirname(ledger)), "00_meta")
-        bpath = os.path.join(_meta, "a13_benlun_jizhun.json")
+        _scope = _scope_key(hx, entry)
+        bpath = os.path.join(_meta, "a13_benlun_jizhun.%s.json" % _scope)
         base = {}
         if os.path.isfile(bpath):
             try:
@@ -390,12 +418,13 @@ def _round_auth_gate(kdir, entry):
                 tmp = bpath + ".tmp"
                 with open(tmp, "w", encoding="utf-8", newline="\n") as _f:
                     json.dump({"updated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+                               "scope": _scope,
                                "files": files_new}, _f,
                               ensure_ascii=False, indent=2, sort_keys=True)
                 os.replace(tmp, bpath)
             except Exception as _e:
                 return False, "A13 基线写入失败：%r" % _e
-        return ok, "%s；%d 件在判" % (detail, len(files_new))
+        return ok, "%s；%d 件在判（本端基线 %s）" % (detail, len(files_new), _scope)
     except Exception as _e:
         return False, "A13 授权闸自身跑不起来：%r" % _e
 

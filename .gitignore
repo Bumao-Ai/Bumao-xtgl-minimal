@@ -28,3 +28,4 @@ _tmp_*
 # runtime check credential
 30_taizhang/check_last.json
 00_meta/a13_benlun_jizhun.json
+00_meta/a13_benlun_jizhun.*.json

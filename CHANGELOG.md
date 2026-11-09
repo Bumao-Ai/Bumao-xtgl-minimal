@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.31 — 2026-11-09
+
+本版同步 core `v0.2.6`：A13 基线按端分文件存放，首次纳入基线时如实标注「未授权基线建立」；判定口径不变。
+
+- **加号依据：0.30→0.31（+0.01 同档正常晋升；0.2.5→0.2.6 属 0.2.x 同档，不跨档）** — 依据 `HX\personal\20_view\di00_qidong_zongze.txt` L55—60 的 0.6.8／0.6.9 规则。
+- **随包内核 `kernel/bumao_core/` 同步 core `v0.2.6`** — 改动 2 件：`engine.py`、`__init__.py`。
+- **未变** — 规则 0 条／28 项检查；A10／B16 等判据不变。
+- **应用内版本 `0.30` → `0.31`** — `00_meta/meta.json`、`10_rac/meta.json`；`README.md` 两个版本空间说明同步。
+
+**English**
+- Kernel bundled copy synced to core `v0.2.6` (`engine.py`, `__init__.py`); A13's verdict is unchanged and its baseline is now per-edition. In-app version `0.30` → `0.31`.
+
 ## 0.30 — 2026-11-09
 
 本版同步 core `v0.2.5`：内核测试件与运行层文案不再命中发布端测试词闸门，测试与运行行为不变。
