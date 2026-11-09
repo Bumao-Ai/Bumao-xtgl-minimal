@@ -61,3 +61,13 @@ README.md、README-HX.txt、20_view/（render 重渲染）、90_lishi/gongkai_we
 分组目录名修正前的旧值，按磁盘 12 件逐件重算后改为实物哈希（generated 改 2026-11-09，core_version 仍 0.10）；
 README 英文侧应用内版本、克隆 tag、A10 段与随附条目数按实物校正。不改判据、不改核心件集合。
 范围：20_view/web/core_manifest.json、00_meta/meta.json、10_rac/meta.json、README.md、CHANGELOG.md、10_rac/views/（render 重渲染）。
+
+【第 9 号】 2026-11-09
+用户批准原文：「授权」
+说明：本版只改对外自述与版本号：README 双语 Roadmap 的 0.2 三项状态改为「2026-11-09 活区三端复跑」，
+并写明随包不附监督执行器、本仓 BUMO_JIANCHA_MODE 保持 off；克隆与版本行按实物同步（13 个 tag、9 条当日条目）；
+00_meta/meta.json 与 10_rac/meta.json 应用内版本 0.32→0.33；维护暂停段照旧，并注明最终暂停版未定、不定时更新。
+不改判据、不改核心件集合、不动 kernel/。
+范围：README.md、00_meta/meta.json、10_rac/meta.json、CHANGELOG.md、10_rac/views/（render 重渲染 3 件）、30_taizhang/shenpi_jilu.txt。
+授权来源：本日「授权」原话（公开仓按脱敏口径只录授权词，句子全文存本机留档，不入公开件）；
+本轮发版依据为当日两条指令「加 0.01」「再出一版并更新文案、维护暂停照写、不定时更新」，指令原文同按脱敏口径不入公开件。

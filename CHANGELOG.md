@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.33 — 2026-11-09
+
+本版只改对外自述与版本号，不改判据、不改核心件集合，也不动 `kernel/`。
+
+- **加号依据：0.32→0.33（+0.01 同档正常晋升）** — 依据 `HX\personal\20_view\di00_qidong_zongze.txt` L55—60 的 0.6.8 规则；随包内核仍 core `v0.2.6`，不跨档再加号。
+- **0.2 三项状态改为「活区三端已复跑」** — README 双语 Roadmap 与状态行写明：①执行前约束、②执行中监管、③执行后审计均在 2026-11-09 于维护者活区三端复跑；同时写明**随包不附监督执行器**，本仓 `BUMO_JIANCHA_MODE` 仍为 `off`。
+- **订正** — 克隆命令与版本行按实物同步（13 个 tag、9 条 2026-11-09 授权条目）；`00_meta/meta.json` 与 `10_rac/meta.json` 的应用内版本同时 0.32→0.33。
+- **维护暂停** — 每版照旧写「维护暂停，稳定可用」；本版补一句维护者口径：哪一版才算最终暂停版尚未确定，因此仍按不定时更新发布。
+- **未变** — 规则 0 条（声明式）、检查项 28；A10／A13 判据不变；`check --strict` 仍 `ALL PASS（A段 12 项 + B段 16 项）`。
+
+**English**
+- Documentation and version strings only; no verdict, no core-file-set change, `kernel/` untouched.
+- The roadmap now states that all three 0.2 items were replayed on the maintainer's three live editions on 2026-11-09, and that this repository still ships no supervisor (`BUMO_JIANCHA_MODE` stays `off`).
+- Synced clone/version lines (13 tags, 9 authorization entries dated 2026-11-09); in-app version `0.32` → `0.33` in both `00_meta/meta.json` and `10_rac/meta.json`.
+- The maintenance-pause line is kept in every release, now noting that the final paused release is undecided and releases continue at irregular intervals.
+- Unchanged: 0 rules (declarative), 28 checks, and the A10 / A13 verdicts.
+
 ## 0.32 — 2026-11-09
 
 本版只修「发布件自述与实物不一致」，不改判定、不改核心件集合。
