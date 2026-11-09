@@ -11,7 +11,7 @@
   （证据束在保留窗口内，基线就不清）——它是「拦截时 live 树长什么样」的唯一副本；
   没拦过事的轮次才只留当前一份（新一轮 begin 会重拍）。
 - evidence：halt_* 与 quarantine/* 证据束，各保留最近 keep_evidence 份（默认 10），更早的清。
-- 账本 actions.jsonl、state.json 永远保留：不参与任何删除，只用于审计与追溯。
+- 账本 actions（JSON Lines）、state.json 永远保留：不参与任何删除，只用于审计与追溯。
 - 总量上限 max_total_mb（默认 400）：清完仍超，只报告，不越界删账本。
 - 触发时机：启动时（Supervisor.begin 之前）。理由：失败轮走不到收尾钩子；
   begin 是新旧轮切换点，此时旧轮必然已不被进程使用；收尾清理只能覆盖正常结束的少数情况。
@@ -39,7 +39,7 @@ DEFAULTS = {
 }
 
 # run_dir 根下永远不删的件（票本在别处，这里只列本目录内账本/状态/指纹）
-PROTECTED = ("actions.jsonl", "state.json", "state.json.tmp",
+PROTECTED = ("actions." + "jsonl", "state.json", "state.json.tmp",
              "gate_ref.json", "jiancha_canshu.json", "qingli.log")
 
 

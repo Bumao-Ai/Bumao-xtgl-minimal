@@ -37,7 +37,7 @@ if os.environ.get("T_LEDGER_CRASH") == "1":
 def main():
     repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     root = tempfile.mkdtemp(prefix="t_ledger_")
-    path = os.path.join(root, "actions.jsonl")
+    path = os.path.join(root, "actions.ledger")
     seed = "t-ledger-seed"
 
     env = dict(os.environ)
@@ -72,7 +72,7 @@ def main():
           v2.get("break", ""))
 
     # 进程被强杀（os._exit）后：写锁由系统释放，新进程可继续追加且链仍完整
-    crash_path = os.path.join(root, "crash.jsonl")
+    crash_path = os.path.join(root, "crash.ledger")
     ce = dict(env)
     ce.update({"T_LEDGER_PATH": crash_path, "T_LEDGER_WID": "9",
                "T_LEDGER_N": "3", "T_LEDGER_CRASH": "1"})

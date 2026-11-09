@@ -1,7 +1,7 @@
 {
  "name": "Bumao XTGL Minimal（开源规则框架）",
  "abbr": "MINIMAL",
- "version": "0.29",
+ "version": "0.30",
  "stage": "ready-to-push",
  "sealed": "2026-10-31",
  "root": ".",

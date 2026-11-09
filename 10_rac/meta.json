@@ -1,11 +1,11 @@
 {
  "name": "Bumao XTGL Minimal",
- "version": "0.29",
+ "version": "0.30",
  "effective": "2026-11-04",
  "entry": "README.md",
  "zero_rules": true,
-"gates": {
+ "gates": {
   "note": "闸门清单不在本文件手工登记。本端闸门唯一来源＝wrapper 的 core.set_expected()；A 段在 kernel/bumao_core/engine.py。实跑数以 check --strict 的 [结论] 行为准。",
   "source": "wrapper.set_expected + kernel/bumao_core/engine.py"
-}
+ }
 }

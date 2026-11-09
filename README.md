@@ -9,8 +9,8 @@ Status: maintenance pause
 ![checks](https://img.shields.io/badge/checks-28-brightgreen)
 ![runtime](https://img.shields.io/badge/runtime-stdlib%20only-informational)
 
-> **Two version spaces** — the in-app version in `00_meta/meta.json` is `0.29`; the repository release tag is `v0.18`. They are two independent numbering spaces, not the same number.
-> **两个版本空间** — 应用内版本（`00_meta/meta.json`）是 `0.29`；仓库发布 tag 是 `v0.18`。这是两个独立的编号空间，不是同一个数字。
+> **Two version spaces** — the in-app version in `00_meta/meta.json` is `0.30`; the repository release tag is `v0.19`. They are two independent numbering spaces, not the same number.
+> **两个版本空间** — 应用内版本（`00_meta/meta.json`）是 `0.30`；仓库发布 tag 是 `v0.19`。这是两个独立的编号空间，不是同一个数字。
 >
 > **Cold start** — to resume iteration, start from [`RETURN_HERE.md`](RETURN_HERE.md).
 > **冷启动** — 恢复迭代从 [`RETURN_HERE.md`](RETURN_HERE.md) 开始。
@@ -35,20 +35,20 @@ python BumaoXTGL_Minimal_v01.py check --strict   # exit code is the verdict
 
 Add your rules by dropping chapter files into `10_rac/` and following the loader in `rules_db.py`; `render.py` regenerates the views. `zero_rules` is declared in `00_meta/meta.json`, so the skeleton passes without inventing content.
 
-`v0.18` is the tag this README was released with; see Releases and verify the zip with `SHA256SUMS`.
+`v0.19` is the tag this README was released with; see Releases and verify the zip with `SHA256SUMS`.
 
 ## Proof of work
 
 | Item | Value | Source |
 |---|---|---|
-| Commits at `v0.18` | — | 远端由 API 合成提交，本地与远端计数不同，不虚标 |
+| Commits at `v0.19` | — | 远端由 API 合成提交，本地与远端计数不同，不虚标 |
 | Last commit | 2026-11-09 | `git log -1 --date=short` |
 | Rules | 0 (declared) | `check --strict` → `0 ch / 0 cls (zero_rules declared)` |
 | Check items | 28 | `check --strict` conclusion (`1/28 gates red`) |
 | Reverse cases | 5 | `10_rac/tests/test_reverse.py`; last run 5/5 pass |
 | Defect ledger | 0 real closed items | `30_taizhang/quexian_taizhang.txt` holds 2 sanitized sample rows |
 | Adapter cases | 10 | `10_rac/tests/test_pretool.py`; last run 10/10 pass (incl. bound-token refusal) |
-| Releases | 10 tags, `v0.1` → `v0.18`, 2026-11-08 → 2026-11-09 | `git tag` |
+| Releases | 11 tags, `v0.1` → `v0.19`, 2026-11-08 → 2026-11-09 | `git tag` |
 | Changelog | [CHANGELOG.md](CHANGELOG.md) | — |
 
 `A10` is red on a public clone by design: it needs a same-day authorized entry in `30_taizhang/shenpi_jilu.txt`, and this edition ships that file as a **structure template with zero entries**. With no parseable entry the gate is **explicitly denied (DENY)** — the result is FAIL, never PASS. "Red by design" means no same-day authorization credential ships here; it is not a waiver. The detail line now starts with `A10 判定=DENY` and names the policy (`deny`).
@@ -129,7 +129,7 @@ Copyright 2026 Bumao
 ![checks](https://img.shields.io/badge/checks-28-brightgreen)
 ![runtime](https://img.shields.io/badge/runtime-stdlib%20only-informational)
 
-> **两个版本空间** — 应用内版本（`00_meta/meta.json`）是 `0.29`；仓库发布 tag 是 `v0.18`。这是两个独立的编号空间，不是同一个数字。
+> **两个版本空间** — 应用内版本（`00_meta/meta.json`）是 `0.30`；仓库发布 tag 是 `v0.19`。这是两个独立的编号空间，不是同一个数字。
 >
 > **冷启动** — 恢复迭代从 [`RETURN_HERE.md`](RETURN_HERE.md) 开始。
 
@@ -153,20 +153,20 @@ python BumaoXTGL_Minimal_v01.py check --strict   # 退出码即结论
 
 往 `10_rac/` 里丢章文件即添加规则，并按 `rules_db.py` 的装载方式对齐；`render.py` 重新生成视图。`zero_rules` 在 `00_meta/meta.json` 中声明，所以骨架无需编造内容即可通过。
 
-`v0.18` 是本 README 随附发布的 tag；见 Releases，并用 `SHA256SUMS` 校验 zip。
+`v0.19` 是本 README 随附发布的 tag；见 Releases，并用 `SHA256SUMS` 校验 zip。
 
 ## 工作留痕
 
 | 项 | 实测值 | 取值来源 |
 |---|---|---|
-| `v0.18` 处的提交数 | — | 远端由 API 合成提交，本地与远端计数不同，不虚标 |
+| `v0.19` 处的提交数 | — | 远端由 API 合成提交，本地与远端计数不同，不虚标 |
 | 最近提交 | 2026-11-09 | `git log -1 --date=short` |
 | 规则 | 0（已声明） | `check --strict` → `0 ch / 0 cls (zero_rules declared)` |
 | 检查项 | 28 | `check --strict` 结论行（`1/28 gates red`） |
 | 反向用例 | 5 | `10_rac/tests/test_reverse.py`；最近一次 5/5 通过 |
 | 缺陷台账 | 0 条真实闭环 | `30_taizhang/quexian_taizhang.txt` 仅 2 行脱敏样例 |
 | 适配器用例 | 10 | `10_rac/tests/test_pretool.py`；最近一次 10/10 通过（含绑定令牌拒绝） |
-| 发布 | 10 个 tag，`v0.1` → `v0.18`，2026-11-08 → 2026-11-09 | `git tag` |
+| 发布 | 11 个 tag，`v0.1` → `v0.19`，2026-11-08 → 2026-11-09 | `git tag` |
 | 变更记录 | [CHANGELOG.md](CHANGELOG.md) | — |
 
 `A10` 在公开克隆上按设计为红：它需要 `30_taizhang/shenpi_jilu.txt` 里有当日的授权条目，而本版把该文件作为**零条目的结构模板**随附。没有可解析条目时，闸门**显式判拒（DENY）**——结果是 FAIL，绝不是 PASS。「按设计红」的意思是本版不随附当日授权凭据，不是豁免。detail 行现在以 `A10 判定=DENY` 开头并标明策略（`deny`）。

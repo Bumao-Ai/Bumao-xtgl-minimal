@@ -37,7 +37,7 @@ def order_for(ws_rel="ws", oid="t-recovery"):
     }
 
 
-CFG = {"ledger": "actions.jsonl", "chain_seed": "t-recovery-seed",
+CFG = {"ledger": "actions.ledger", "chain_seed": "t-recovery-seed",
        "baseline_dir": "baseline", "watch_scope": ".", "force_ticket": False}
 
 WORKER = r"""
@@ -86,7 +86,7 @@ def main():
     except HaltSignal:
         halted = True
     check("新进程发现入口外改动并中断", halted, "status=%s" % sup.state.get("status"))
-    admin = ActionLedger(os.path.join(run, "actions.jsonl"), CFG["chain_seed"])
+    admin = ActionLedger(os.path.join(run, "actions.ledger"), CFG["chain_seed"])
     check("意外退出后账本链仍完整", admin.verify()["break"] == "", admin.verify()["break"])
 
     rec = sup.recover_restore()
@@ -122,7 +122,7 @@ def main():
         failed_raised = "恢复失败" in str(e)
         print("EXPECTED_ERROR %s" % e)
     check("基线副本缺失时恢复报错", failed_raised)
-    L2 = ActionLedger(os.path.join(run2, "actions.jsonl"), CFG["chain_seed"])
+    L2 = ActionLedger(os.path.join(run2, "actions.ledger"), CFG["chain_seed"])
     last = L2.records()[-1]
     check("恢复失败记 RESTORE_FAILED", last.get("error_code") == "RESTORE_FAILED"
           and last.get("result") == "fail", json.dumps(last.get("evidence", {}), ensure_ascii=False)[:120])

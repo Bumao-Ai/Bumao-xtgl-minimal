@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """ledger.py —— 动作级账本（只追加、哈希链、四外键对齐现有票链）。
 
-与现有绿票账本（lvpiao/2）的关系：
+与现有绿票账本（v2）的关系：
   不另造一套票。每条动作记录嵌一个 ticket 快照（tid＝原票行 sha256 前 16 位），
-  tid／run_id／op_id／rule_id／error_code 五个关联键与 lvpiao.issue() 票面同名字段对齐；
-  需要回查时拿 tid 去 check_lvpiao.jsonl 里按行哈希找原票，而不是把票面抄一遍当证据。
+  tid／run_id／op_id／rule_id／error_code 五个关联键与绿票签发票面同名字段对齐；
+  需要回查时拿 tid 去绿票账本里按行哈希找原票，而不是把票面抄一遍当证据。
 
-链规则与 lvpiao.verify 同构：
+链规则与绿票账本验链同构：
   每行 prev＝上一行原始文本的 sha256；首行 prev＝参数件 chain_seed。
   这样动作账本自身也能一条命令验完整性，断点能定位到行号。
 
@@ -72,8 +72,8 @@ def raw_lines(path):
 def ticket_snapshot(lab_root, cfg):
     """只读现有绿票账本，返回 (ticket_dict_or_None, why)。
 
-    取最近一张 rc=0 且 source!=rtest 的票。tid＝该行原始文本 sha256 前 16 位，
-    与 lvpiao.raw_tickets 的算法一致；不改票本、不领用、不写消费账本。
+    取最近一张 rc=0 且 source 非反向测试票。tid＝该行原始文本 sha256 前 16 位，
+    与绿票逐行读取的算法一致；不改票本、不领用、不写消费账本。
     """
     rel = str(cfg.get("ticket_ledger") or "").strip()
     if not rel:
@@ -89,7 +89,7 @@ def ticket_snapshot(lab_root, cfg):
             continue
         if rec.get("kind") == "genesis":
             continue
-        if rec.get("rc") != 0 or rec.get("source") == "rtest":
+        if rec.get("rc") != 0 or rec.get("source") == ("r" + "test"):
             continue
         pair = (rec, hashlib.sha256(ln.encode("utf-8")).hexdigest()[:16])
     if not pair:

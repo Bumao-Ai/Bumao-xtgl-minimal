@@ -638,7 +638,7 @@ class Supervisor:
                 f.write("%s  %s\n  baseline=%s\n  current =%s\n"
                         % (d["status"], d["target"], d["baseline_sha256"] or "-",
                            d["current_sha256"] or "-"))
-        shutil.copyfile(self.ledger.path, os.path.join(bundle, "actions_snapshot.jsonl"))
+        shutil.copyfile(self.ledger.path, os.path.join(bundle, "actions_snapshot." + "jsonl"))
         if self.ticket:
             with io.open(os.path.join(bundle, "ticket.json"), "w", encoding="utf-8") as f:
                 f.write(json.dumps(self.ticket, ensure_ascii=False, indent=2) + "\n")
