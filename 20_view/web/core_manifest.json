@@ -1,11 +1,11 @@
 {
   "core_version": "0.10",
-  "generated": "2026-11-08",
+  "generated": "2026-11-09",
   "note": "一致性判据：同一发行版内下列核心件按 sha256 现场对账；发布件不含跨端同步工具。改核心后必须重新生成本清单。",
   "files": {
     "xtgl_core.py": "aa2ab2ae61af9cbb8fd99068217719b53914aa25ebd1824f2006934b49632541",
     "serve.py": "045e59a2600e4e9707e20507a81732388e47a7c1f8deec4e75e00c38f59f7631",
-    "index.html": "17db952b40b5aaaf816b6bfeefc64b89134869cebb1dafa80d79174ab87c1f93",
+    "index.html": "d71cc3d1b1947d3050866e79127933d9b70acfff99c6bdc6e5e77bdac299b346",
     "setup.html": "71c353c1f80f290e37a9056dc5e711680490ab4bc7060fbc142371bcc00c8b10",
     "tutorial.html": "1814843e403e23650edbf2d7d3187d795b20099ec88be1281d7bdfbfb59abac2",
     "module_check.py": "4e7e72d1c1db2e2981cfc18703ae613722f21fdaba81a66692b3c0d7fc1ecbc7",

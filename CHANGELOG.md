@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.32 — 2026-11-09
+
+本版只修「发布件自述与实物不一致」，不改判定、不改核心件集合。
+
+- **加号依据：0.31→0.32（+0.01 同档正常晋升）** — 依据 `HX\personal\20_view\di00_qidong_zongze.txt` L55—60 的 0.6.8 规则；随包内核仍 core `v0.2.6`，不跨档再加号。
+- **`20_view/web/core_manifest.json` 的 `index.html` 哈希改为实物值** — 旧值 `17db952b…` 是 logKey 分组目录名修正前的版本；现按磁盘 12 件逐件重算，`generated` 改为 `2026-11-09`，`core_version` 仍 `0.10`。
+- **README 自述按实物校正** — 英文侧「应用内版本」停在 `0.30`，改为 `0.32`；克隆命令的 tag 由 `v0.18` 改为 `v0.20`；`A10` 段旧文称「随附零条目模板、按设计为红」，与实际（随附 8 条 2026-11-09 条目、`A10` 为 PASS）不符，按实物改写。
+- **未变** — 规则 0 条（声明式）、检查项 28；A10／A13 判据不变；`check --strict` 仍 `ALL PASS（A段 12 项 + B段 16 项）`。
+
+**English**
+- Fixes only where the published artefacts described themselves wrongly; no verdict or core-file-set changes.
+- `20_view/web/core_manifest.json`: the `index.html` entry now carries the actual on-disk sha256; all 12 entries verify against disk, `generated` is `2026-11-09`, `core_version` stays `0.10`.
+- README: the English "in-app version" line (stuck at `0.30`) now reads `0.32`; the clone command pins tag `v0.20`; the `A10` paragraph said the edition ships an empty template and is "red by design", which contradicted the shipped file (8 entries dated 2026-11-09, `A10` PASS) and is now corrected.
+- Unchanged: 0 rules (declared), 28 checks, and the A10 / A13 verdicts.
+
 ## 0.31 — 2026-11-09
 
 本版同步 core `v0.2.6`：A13 基线按端分文件存放，首次纳入基线时如实标注「未授权基线建立」；判定口径不变。

@@ -53,3 +53,11 @@
 范围：kernel/bumao_core/engine.py、kernel/bumao_core/__init__.py、00_meta/meta.json、CHANGELOG.md、
 README.md、README-HX.txt、20_view/（render 重渲染）、90_lishi/gongkai_weihu_261107/engine.py.261109_pre_0.2.6.bak、
 90_lishi/gongkai_weihu_261107/__init__.py.261109_pre_0.2.6.bak、.gitignore。
+
+
+【第 8 号】 2026-11-09
+用户批准原文：「授权」
+说明：本版只修发布件自述与实物不一致：20_view/web/core_manifest.json 里 index.html 的 sha256 仍是 logKey
+分组目录名修正前的旧值，按磁盘 12 件逐件重算后改为实物哈希（generated 改 2026-11-09，core_version 仍 0.10）；
+README 英文侧应用内版本、克隆 tag、A10 段与随附条目数按实物校正。不改判据、不改核心件集合。
+范围：20_view/web/core_manifest.json、00_meta/meta.json、10_rac/meta.json、README.md、CHANGELOG.md、10_rac/views/（render 重渲染）。
