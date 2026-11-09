@@ -57,6 +57,7 @@
 """
 
 import ast
+import datetime
 import os
 import re
 import sys
@@ -265,17 +266,36 @@ def count_registers_from_file(wrapper_path, encoding="utf-8-sig"):
 # ── 版本变更授权闸（L2＋L3） ───────────────────────────────────────────
 # 立闸原因（2026-11-07）：版本曾被无授权漂到 2.2.1；C2 只比「代码串＝契约串」，
 # 同一轮同时改代码与契约声明时两串仍相等，C2 必绿 —— 该缺口由此闸堵住：
-# 判据不取自被改的两件，而取自独立的审批册（当日行＋用户授权原话＋最新授权版本）。
-# 端无关：本文件不写端名，审批册按「层目录」形态向上搜索。
+# 判据不取自被改的两件，而取自独立的审批册。
+#
+# 2026-11-09 改为三态（修缺陷，不是放宽）：
+#   未变更：契约 updated_at 早于最近一条授权条目日期 → PASS（core_version 未被改过）
+#   有变更：updated_at 不早于最近授权日 → 查该日是否有授权条目：有 PASS，无 DENY
+#   判不了：契约缺字段／updated_at 非法／审批册不可读或无可解析授权条目 → DENY
+# 旧实现把「没有审批册」直接当「未授权变更」，且拿契约版本号去比另一条版本轴上的
+# 审批版本号，导致合法包恒红；现按变更日期判定，不再跨轴比版本号。
 _APPROVAL_WORDS = ("授权", "批准", "同意", "裁定", "令")
 
 # 无审批册策略：显式判拒（deny），不是「找不到文件」的软提示。
-# 任何版本变更若拿不出当日授权凭据，一律不放行；判定结果写进 result["verdict"]，
+# 判不了变更状态时一律不放行；判定结果写进 result["verdict"]，
 # 由 version_approval_check() 带进 A10 的 detail，check --strict 里可见。
 NO_LEDGER_POLICY = "deny"
 _ENTRY_RE = re.compile(r"【第\s*(\d+)\s*号】\s*(\d{4}-\d{2}-\d{2})")
 _APPROVED_RE = re.compile(r"用户批准原文\s*[:：]\s*「([^」]*)」", re.S)
 _VERSION_RE = re.compile(r"(?<![\d.])\d+\.\d+(?:\.\d+)?(?![\d.])")
+_DATE_RE = re.compile(r"^(\d{4}-\d{2}-\d{2})(?:[ T]\d{2}:\d{2}:\d{2})?$")
+
+
+def _date_only(s):
+    """契约日期取日期部分并校验；非法返回空串（调用方据此判「判不了」）。"""
+    m = _DATE_RE.match(str(s or "").strip())
+    if not m:
+        return ""
+    try:
+        datetime.date(int(m.group(1)[:4]), int(m.group(1)[5:7]), int(m.group(1)[8:10]))
+    except ValueError:
+        return ""
+    return m.group(1)
 
 
 def parse_approval_entries(text):
@@ -326,67 +346,76 @@ def approval_covers_file(ledger_text, date, filename, words=None):
 
 
 def version_approval(declared_version, changed_on, ledger_text, ledger_path=""):
-    """L2＋L3 判定。declared_version＝契约 current_value；changed_on＝契约 updated_at。
+    """A10 三态判定。declared_version＝契约 current_value；changed_on＝契约 updated_at。
 
-    L2：当日（changed_on）审批行里，必须有含该版本号且带授权词的「用户批准原文」。
-    L3：该版本号必须等于审批册里最新一条授权版本 —— 代码与契约同轮双改时，
-        两件自洽但审批册没记，故在此被拦（堵 C2 只比字符串的缺口）。
+    1) 未变更：updated_at 早于最近授权条目日期 → PASS；
+    2) 有变更：updated_at 不早于最近授权日 → 该日有授权条目则 PASS，无则 DENY；
+    3) 判不了：缺 current_value/updated_at、日期非法、审批册不可读或无可解析授权条目 → DENY。
+
+    三态只看「变更日期有没有授权」，不再拿契约版本号跨轴比对审批册版本号。
     """
     declared = str(declared_version or "").strip()
     changed_on = str(changed_on or "").strip()
     text = ledger_text or ""
     res = {"ledger_ok": bool(text.strip()), "ledger_path": ledger_path,
-           "entries": 0, "latest_authorized": "", "l2_ok": False, "l3_ok": False,
+           "entries": 0, "latest_authorized": "", "latest_date": "",
+           "state": "unjudged", "l2_ok": False, "l3_ok": False,
            "verdict": "DENY", "policy": NO_LEDGER_POLICY,
            "l2_detail": "", "l3_detail": ""}
 
+    if not declared or not changed_on:
+        res["l2_detail"] = ("判拒（DENY · 判不了）：契约缺 current_value 或 updated_at，"
+                            "无法判定 core_version 是否变更")
+        return res
+    day = _date_only(changed_on)
+    if not day:
+        res["l2_detail"] = ("判拒（DENY · 判不了）：契约 updated_at 非法（%r），"
+                            "无法判定变更日期" % changed_on)
+        return res
+
     if not res["ledger_ok"]:
-        res["l2_detail"] = ("判拒（DENY · 策略 %s）：无审批册（%s），"
-                            "版本变更一律不放行" % (NO_LEDGER_POLICY, ledger_path or "未指定"))
-        res["l3_detail"] = "判拒（DENY）：无审批册，无法确认授权版本"
+        res["l2_detail"] = ("判拒（DENY · 判不了 · 策略 %s）：无审批册（%s），"
+                            "无法判定是否授权" % (NO_LEDGER_POLICY, ledger_path or "未指定"))
         return res
 
     entries = parse_approval_entries(text)
     res["entries"] = len(entries)
-    if not entries:
-        res["l2_detail"] = ("判拒（DENY · 策略 %s）：审批册里没有可解析的【第 N 号】条目"
-                            % NO_LEDGER_POLICY)
-        res["l3_detail"] = "判拒（DENY）：审批册无可解析条目，无法确认授权版本"
+    authorized = [e for e in entries
+                  if any(w in e["approved"] for w in _APPROVAL_WORDS)]
+    if not authorized:
+        res["l2_detail"] = ("判拒（DENY · 判不了 · 策略 %s）：审批册无带授权原话的"
+                            "可解析条目" % NO_LEDGER_POLICY)
         return res
 
-    # L2：当日授权行
-    same_day = [e for e in entries if e["date"] == changed_on]
-    hit = [e for e in same_day
-           if declared in e["approved"] and any(w in e["approved"] for w in _APPROVAL_WORDS)]
-    res["l2_ok"] = bool(hit)
-    if hit:
-        res["l2_detail"] = "当日（%s）第 %d 号审批行含授权原话且写明 %s" % (
-            changed_on, hit[0]["no"], declared)
-    elif not same_day:
-        res["l2_detail"] = "无当日（%s）审批行（当日行 %d 条）" % (changed_on, len(same_day))
-    else:
-        res["l2_detail"] = "当日 %d 条审批行，均无含 %s 且带授权词的批准原文" % (
-            len(same_day), declared)
+    latest = max(authorized, key=lambda e: (e["date"], e["no"]))
+    res["latest_authorized"] = "第 %d 号（%s）" % (latest["no"], latest["date"])
+    res["latest_date"] = latest["date"]
 
-    # L3：最新授权版本（按编号取最后一条带版本号的授权原文）
-    auth_vers = []
-    for e in entries:
-        if not any(w in e["approved"] for w in _APPROVAL_WORDS):
-            continue
-        vers = _VERSION_RE.findall(e["approved"])
-        for v in vers:
-            auth_vers.append((e["no"], v))
-    latest = max(auth_vers)[1] if auth_vers else ""
-    res["latest_authorized"] = latest
-    res["l3_ok"] = bool(latest) and declared == latest
-    if not latest:
-        res["l3_detail"] = "审批册里没有带授权原话的版本号，%s 无法自证" % declared
-    elif declared == latest:
-        res["l3_detail"] = "声明版本 %s 与审批册最新授权版本 %s 一致" % (declared, latest)
-    else:
-        res["l3_detail"] = ("声明版本 %s 与审批册最新授权版本 %s 不一致 —— "
-                            "代码与契约同轮双改不能自证（C2 缺口）" % (declared, latest))
-    res["verdict"] = "PASS" if (res["l2_ok"] and res["l3_ok"]) else "DENY"
+    # 三态一：契约自上次授权后未动过 → PASS
+    if latest["date"] and day < latest["date"]:
+        res["state"] = "unchanged"
+        res["l2_ok"] = True
+        res["l2_detail"] = ("放行（PASS · 未变更）：契约 updated_at %s 早于最近授权条目"
+                            "%s，core_version 自上次审批后未变更" % (day, res["latest_authorized"]))
+        res["l3_detail"] = "未变更态：不要求当日新增审批"
+        res["verdict"] = "PASS"
+        return res
+
+    # 三态二：契约有变更 → 变更当日必须有授权条目
+    res["state"] = "changed"
+    same_day = [e for e in authorized if e["date"] == day]
+    if same_day:
+        res["l2_ok"] = True
+        res["l2_detail"] = ("放行（PASS · 有变更）：变更当日（%s）有授权条目（第 %d 号）"
+                            % (day, same_day[0]["no"]))
+        res["l3_detail"] = "有变更态：当日授权已覆盖本次契约更新"
+        res["verdict"] = "PASS"
+        return res
+
+    res["l2_detail"] = ("判拒（DENY · 有变更）：变更当日（%s）无授权条目"
+                        "（最近授权 %s）" % (day, res["latest_authorized"]))
+    res["l3_detail"] = "有变更态：当日缺授权，不放行"
+    res["verdict"] = "DENY"
     return res
 
 
@@ -427,10 +456,10 @@ def version_approval_check(declared_version, changed_on, start_dir):
         except OSError as e:
             return False, "审批册读取失败：%s" % e, {}
     r = version_approval(declared_version, changed_on, text, ledger_path=path)
-    ok = bool(r["l2_ok"] and r["l3_ok"])
+    ok = r["verdict"] == "PASS"
     r["verdict"] = "PASS" if ok else "DENY"
-    detail = "A10 判定=%s ｜ L2 %s ｜ L3 %s" % (
-        r["verdict"], r["l2_detail"], r["l3_detail"])
+    detail = "A10 判定=%s ｜ 三态=%s ｜ %s ｜ %s" % (
+        r["verdict"], r.get("state", "unjudged"), r["l2_detail"], r["l3_detail"])
     return ok, detail, r
 
 

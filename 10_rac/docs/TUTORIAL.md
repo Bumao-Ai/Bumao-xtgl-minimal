@@ -344,3 +344,354 @@ git push
 - 本地 git 已初始化、已提交、**未加任何远端、未 push**（真实推送属对外发布动作，
   需负责人批准后，由本人按 T6/T7 执行）；
 - 推送前的演练用的是**本地裸仓库 dry-run**，没有碰真实 GitHub。
+
+---
+
+## English
+
+# Bumao XTGL Minimal: GitHub Upload Tutorial from Zero (Follow Along and It Runs)
+
+> This tutorial is for people who have **never used git / GitHub**. Every command comes with "the exact text to copy" and "what counts as success".
+> Everything runs on Windows + PowerShell. Your GitHub username is written `<your-user>` throughout,
+> and the repository name is `bumao-xtgl-minimal`; please replace them with your own.
+>
+> The project this tutorial corresponds to is this repository (Bumao XTGL Minimal); the local project root is `10_rac\`.
+
+---
+
+## T1 · Sign up for a GitHub account and verify your email
+
+1. Open <https://github.com/signup>.
+2. Enter an email address that **can receive mail** (a regular mailbox is recommended; adding the SSH key and receiving notices later both rely on it).
+3. Set a password and pick a username (the username appears in the repository URL and is painful to change later, so think it through first).
+4. When the verification email arrives, click the link in it to finish verification.
+5. After signing in, if you can see your avatar in the top right, the account is OK.
+
+**What counts as success**: you can sign in to <https://github.com>, and the top right shows your avatar rather than "Sign in".
+
+> Screenshot slots (kept for the record; fill them in yourself when actually doing it):
+> [Screenshot 1-1: sign-up page]  [Screenshot 1-2: email verified notice]
+
+---
+
+## T2 · Install Git for Windows
+
+1. Download: <https://git-scm.com/download/win> (it serves the 64-bit installer automatically; version ≥ 2.40 required).
+2. Double-click to install. **While clicking Next, be careful about the trade-offs on these three checkboxes**:
+   - **"Adjusting your PATH environment"**: choose the second option
+     **"Git from the command line and also from 3rd-party software"** (it is the default; leave it alone).
+     This option decides whether you can type `git` directly in PowerShell.
+   - **"Choosing the SSH executable"**: choose **"Use bundled OpenSSH"** (the default; use the bundled SSH).
+   - **"Choosing the default editor used by Git"**: choose an editor you are comfortable with;
+     beginners are fine with either **Vim** or **Nano** (it does not affect command-line work).
+3. After installation, **close PowerShell and open it again** (so PATH takes effect), then verify:
+
+```powershell
+git --version
+```
+
+**What counts as success**: one line `git version 2.xx.x.windows.x` is printed, instead of "git is not recognized".
+
+---
+
+## T3 · Configure your identity (the name and email shown in commit records)
+
+```powershell
+git config --global user.name  "你的名字或昵称"
+git config --global user.email "你注册 GitHub 用的那个邮箱"
+```
+
+Verify:
+
+```powershell
+git config --global user.name
+git config --global user.email
+```
+
+**What counts as success**: the two commands above echo back the name and email you just entered.
+
+> Note: `--global` applies to every repository on this machine. If you only want it for this project,
+> drop `--global` and run the commands in the project directory (same effect; pick one of the two).
+
+---
+
+## T4 · Generate an SSH key and add the public key to GitHub
+
+Pushing over SSH saves you from typing a password every time. Replace the email below with your own:
+
+```powershell
+ssh-keygen -t ed25519 -C "you@example.com"
+```
+
+After running it, it asks three questions; **press Enter on all of them** (no passphrase, so you don't have to type one every time):
+
+```
+Enter file in which to save the key (...):        <- 直接回车
+Enter passphrase (empty for no passphrase):      <- 直接回车
+Enter same passphrase again:                     <- 直接回车
+```
+
+Then **copy the public key content** (the `.pub` public key, not the private key):
+
+```powershell
+Get-Content $env:USERPROFILE\.ssh\id_ed25519.pub
+```
+
+The output is one line, starting with `ssh-ed25519 AAAA....` and ending with your email. **Copy the whole line.**
+
+Add it to GitHub:
+1. Open <https://github.com/settings/keys> (avatar → Settings → SSH and GPG keys).
+2. Click **New SSH key**.
+3. The Title can be anything (for example "my Windows laptop").
+4. Paste the whole public-key line you just copied into the Key box.
+5. Click **Add SSH key**.
+
+**What counts as success**: the key you just added appears in the list.
+
+> Never send the private key `id_ed25519` (the one without `.pub`) to anyone, and never upload it.
+
+---
+
+## T5 · Verify that SSH can connect to GitHub
+
+```powershell
+ssh -T git@github.com
+```
+
+The first time it asks `Are you sure you want to continue connecting (yes/no)?`; type `yes` and press Enter.
+
+**What counts as success**: it prints
+`Hi <your-user>! You've successfully authenticated, but GitHub does not provide shell access.`
+(seeing `successfully authenticated` means it worked; "does not provide shell access" is normal, not an error.)
+
+---
+
+## T6 · Create an empty repository on the GitHub website
+
+1. Open <https://github.com/new>.
+2. Fill **Repository name** with `bumao-xtgl-minimal`.
+3. Description is optional: `A rules-as-code governance layer for AI agents.`
+4. Choose **Public** (open source should be public; choose Private if you want to keep it hidden for now).
+5. **Do not tick** "Add a README", **do not tick** "Add .gitignore", **do not choose** "Choose a license".
+   - Reason: this project already ships these three files. If GitHub generates another copy,
+     your local push and the web version would each have an initial version of the file, which conflicts directly and cannot be pushed.
+6. Click **Create repository**.
+7. After creation the page shows an address `git@github.com:<your-user>/bumao-xtgl-minimal.git`; **copy it**, you need it in the next step.
+
+**What counts as success**: you land on an empty repository page with a "Quick setup" hint and that SSH address on it.
+
+---
+
+## T7 · Initialize locally and push for the first time (copy the whole flow)
+
+> Run the following in the project root (that is, the outermost folder after unpacking/cloning this repository, the one that contains BumaoXTGL_Minimal_v01.py).
+> The release package ships with `kernel/bumao_core`; when unpacking or cloning, you must bring the kernel directory along and place it at the same level as the outer folder of this repository, otherwise `check --strict` prints `[FATAL] missing gate kernel` and exits with exit=2 (see *Kernel placement* in `10_rac/README.md`).
+> First use Explorer to navigate into that folder, then type `powershell` in the address bar and press Enter to open a terminal, or cd there manually:
+>
+> ```powershell
+> cd path\to\bumao-xtgl-minimal     # 换成你本机项目根目录的真实路径
+> ```
+
+```powershell
+# 1) 初始化 git 仓库，默认分支命名为 main
+git init -b main
+
+# 2) 把所有文件加入暂存区
+git add .
+
+# 3) 看一眼暂存区（教你怎么读）
+git status
+```
+
+How to read `git status`:
+- green `new file:` lines are the files about to be committed;
+- if you see red `untracked files`, the previous `git add .` did not succeed;
+- `logs/`, `tests/_tmp_*`, `__pycache__/`, `selfcheck.py` written in `gitignore` **will not** appear in the list; that is correct.
+
+```powershell
+# 4) 提交第一个版本（引号里是说明文字，可改）
+git commit -m "Initial release: Bumao XTGL Minimal 0.10"
+
+# 5) 把本地仓库关联到你在 T6 建的空仓库（地址换成你自己的）
+git remote add origin git@github.com:<your-user>/bumao-xtgl-minimal.git
+
+# 6) 首次推送，并把本地 main 关联到远端 origin/main
+git push -u origin main
+```
+
+**What counts as success**: the last command prints something like
+`Enumerating objects: ... Writing objects: 100% ... To github.com:<your-user>/bumao-xtgl-minimal.git * [new branch] main -> main`.
+Refresh the repository page on GitHub and you can see all the files.
+
+Verification commands (you can self-check without pushing):
+
+```powershell
+git log --oneline      # 应看到 1 条提交 "Initial release: Bumao XTGL Minimal 0.10"
+git status             # 应显示 "nothing to commit, working tree clean"
+git remote -v          # 应列出 origin = git@github.com:<your-user>/bumao-xtgl-minimal.git
+```
+
+---
+
+## T8 · Common errors and fixes (each with the original error text + the fix)
+
+### Error 1: `Permission denied (publickey)`
+
+When pushing you see:
+```
+git@github.com: Permission denied (publickey).
+fatal: Could not read from remote repository.
+```
+**Cause**: the SSH public key was not added correctly, or the local private key was not found.
+**Fix**:
+```powershell
+# a. 先测连通，确认是不是 SSH 问题
+ssh -T git@github.com
+# b. 如果这里也报 Permission denied，回到 T4 重新加公钥；
+#    确认你复制的是 .pub 公钥整行，且 GitHub 上那把 key 没删。
+# c. 确认远端用的是 SSH 地址而不是 HTTPS 地址：
+git remote -v
+#    如果显示 https://github.com/...，改成 SSH：
+git remote set-url origin git@github.com:<your-user>/bumao-xtgl-minimal.git
+```
+
+### Error 2: `src refspec main does not match any`
+
+When pushing you see:
+```
+error: src refspec main does not match any
+error: failed to push some refs to 'git@github.com:...'
+```
+**Cause**: you have no commits yet, so there is no `main` branch locally at all.
+**Fix**: do `add` and `commit` in order, then push:
+```powershell
+git add .
+git commit -m "Initial release: Bumao XTGL Minimal 0.10"
+git log --oneline     # 这一步必须能看到提交记录，再 push
+git push -u origin main
+```
+
+### Error 3: `failed to push some refs ... fetch first` / non-fast-forward
+
+When pushing you see:
+```
+ ! [rejected]        main -> main (non-fast-forward)
+error: failed to push some refs to 'git@github.com:...'
+hint: Updates were rejected because the remote contains work that you do not have locally.
+```
+**Cause**: the remote already has commits (for example you ticked README on the web page, or someone else pushed), so local and remote have diverged.
+**Fix**: pull the remote down first, rebase onto the local commits, then push:
+```powershell
+git pull --rebase origin main
+# 如果有冲突，按提示改完：
+#   git add <冲突文件>
+#   git rebase --continue
+# 然后再推：
+git push -u origin main
+```
+
+### Error 4: a file exceeds 100 MB and GitHub rejects it
+
+When pushing you see:
+```
+remote: error: File xxx is 150.00 MB; this exceeds GitHub's file size limit of 100.00 MB
+```
+**Cause**: a large file slipped into the repository (this project is plain text, so you normally won't hit this; it only happens if you add build products or data sets).
+**Fix** (choose one of the two):
+- Add the large file to `.gitignore` and clear it from history (simplest: delete that file and commit again):
+```powershell
+# 假设大文件是 build/big.bin
+Add-Content .gitignore "build/big.bin"
+git rm --cached build/big.bin
+git commit -m "Stop tracking large build artifact"
+```
+- Or manage large files with Git LFS:
+```powershell
+git lfs install
+git lfs track "*.bin"
+git add .gitattributes
+git add build/big.bin
+git commit -m "Track large files via Git LFS"
+```
+
+### Error 5: Chinese file names show up as `\345\244\247\345\220\210` octal garbage in git
+
+In `git status` the Chinese file names are displayed as a string of `\xxx\xxx`.
+**Cause**: git escapes non-ASCII file names by default.
+**Fix**:
+```powershell
+git config --global core.quotepath false
+git status      # 再看，中文文件名就正常显示了
+```
+
+---
+
+## T9 · Publish a Release (tagging a version)
+
+Once the code is pushed up, publish an official version:
+
+```powershell
+cd path\to\bumao-xtgl-minimal     # 你的项目根目录
+
+# 1) 打一个带备注的标签（版本号和 meta.json 里的一致）
+git tag -a v0.10 -m "Bumao XTGL Minimal 0.10: first public release"
+
+# 2) 把标签推到远端
+git push origin v0.10
+```
+
+Then write the Release Notes on the web page:
+1. Open the repository page → **Releases** on the right → **Draft a new release**.
+2. In **Choose a tag**, select the `v0.10` you just pushed.
+3. Fill Release title with `v0.10`.
+4. In Describe, write what this version does (copying the highlights from the README is fine).
+5. If you have artifacts (zip, wheel), drag them into **Attach binaries**.
+6. Click **Publish release**.
+
+**What counts as success**: `v0.10` appears on the repository's Releases page and can be downloaded.
+
+---
+
+## T10 · Ongoing maintenance: one-way sync of new versions from the "real body" into the open-source edition
+
+> This is the most important discipline of this project: **back up before changing; after changing you must render and pass the gates; never hand-edit the views.**
+
+When the real body is upgraded later, follow this flow to "translate" the changes into the open-source edition:
+
+```powershell
+# 1) 在开源项目目录里，先确认本地是干净的
+cd path\to\bumao-xtgl-minimal
+git status                 # 必须 working tree clean
+
+# 2) 从真身拷过来的改动，逐个人工甄别：
+#    - 只拷"通用、无私有信息"的部分；
+#    - 私有业务词、个人信息、绝对路径一律不带（见下）；
+#    - 改完立刻跑脱敏四查（见下节「同步红线」）。
+
+# 3) 重渲染 + 跑闸门 + 跑测试，必须全绿
+python render.py write
+python BumaoXTGL_Minimal_v01.py check --strict          # 必须 ALL PASS (27 gates)
+python -m unittest discover tests        # 必须 OK
+
+# 4) 升版本号（只改 meta.json 一处），再提交推送
+python BumaoXTGL_Minimal_v01.py bump
+git add .
+git commit -m "Sync: bring generic improvements from internal core"
+git push
+```
+
+**Sync red lines (go through them every time)**:
+- no keys starting with `sk-` (20 characters or more);
+- no personal names, machine names, or drive-letter absolute paths;
+- no private business codenames, internal product names or project names (replace them all with generic words or delete them);
+- if the gates are not all green or the tests do not pass, do not commit and do not push.
+
+---
+
+## Appendix: the "ready to push with one command" state of this project
+
+This repository is already prepared locally to the "one last step missing" state:
+- code, README, LICENSE (Apache-2.0), CONTRIBUTING, tests and CI are all in place;
+- local git is initialized and committed, **with no remote added and nothing pushed** (a real push is an external release action,
+  which requires the owner's approval and is carried out by the owner following T6/T7);
+- the rehearsal before pushing used a **local bare repository dry run** and never touched the real GitHub.

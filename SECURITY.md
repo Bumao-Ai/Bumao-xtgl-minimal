@@ -27,3 +27,35 @@
 - 我们会尽快确认收到报告，并在修复发布后致谢（如你愿意具名）。
 - 修复前请勿公开细节；修复发布后可由你或维护者撰写公告。
 - 请勿在报告中粘贴真实个人信息；必要时用 `example/` 占位。
+
+---
+
+# Security Policy（English）
+
+## Reporting a security issue
+
+Please do **not** disclose vulnerability details in a public Issue. Use the private reporting channel of the hosting repository:
+
+- Open the repository page → **Security** → **Advisories** → **Report a vulnerability**
+
+The maintainers will confirm reproduction steps, impact and a fix with you in the private thread.
+
+## In scope
+
+- A gate can be bypassed, forged or silently skipped (for example a tampered verdict or a forged ALL PASS).
+- The anti-shrink mechanism fails (a run still passes after `register()` is commented out or `set_expected()` is altered).
+- Path traversal or arbitrary file read/write in rule loading, indexing or auditing.
+- Unauthorized access, command injection or directory traversal in the console endpoints.
+- Real paths, user names, hostnames, credentials or personal data accidentally committed to the repository.
+
+## Out of scope
+
+- Whether rule content you wrote yourself is correct or reasonable.
+- Problems introduced by your own modifications (confirm first that the original version reproduces them).
+- Social engineering, physical access, or vulnerabilities in third-party services themselves.
+
+## Handling
+
+- We will acknowledge your report as soon as possible and credit you after the fix ships (if you wish to be named).
+- Please do not publish details before the fix; after it ships, either you or the maintainers may write the advisory.
+- Do not paste real personal data into a report; use `example/` placeholders where needed.

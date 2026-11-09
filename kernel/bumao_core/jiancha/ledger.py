@@ -125,12 +125,97 @@ def resolve_tid(lab_root, cfg, tid):
     return None
 
 
+ANCHOR_SUFFIX = ".anchor"
+LOCK_SUFFIX = ".lock"
+LOCK_TIMEOUT = 120.0
+
+
+class FileLock(object):
+    """跨进程写锁：Windows 用 msvcrt.locking，POSIX 用 fcntl.lockf。
+
+    锁文件独立于账本，锁住第 0 字节；拿不到锁就重试，超时抛 RuntimeError
+    （宁可报错也不在无锁状态下追加）。
+    """
+
+    def __init__(self, path, timeout=LOCK_TIMEOUT):
+        self.path = os.path.abspath(path)
+        self.timeout = timeout
+        self._fh = None
+
+    def __enter__(self):
+        os.makedirs(os.path.dirname(self.path), exist_ok=True)
+        self._fh = io.open(self.path, "a+b")
+        if os.path.getsize(self.path) == 0:
+            self._fh.write(b"\0")
+            self._fh.flush()
+        self._fh.seek(0)
+        deadline = time.time() + self.timeout
+        if os.name == "nt":
+            import msvcrt
+            while True:
+                try:
+                    msvcrt.locking(self._fh.fileno(), msvcrt.LK_NBLCK, 1)
+                    break
+                except OSError:
+                    if time.time() >= deadline:
+                        self._fh.close()
+                        self._fh = None
+                        raise RuntimeError("动作账本写锁等待超时：%s" % self.path)
+                    time.sleep(0.05)
+        else:
+            import fcntl
+            try:
+                fcntl.lockf(self._fh.fileno(), fcntl.LOCK_EX)
+            except OSError:
+                self._fh.close()
+                self._fh = None
+                raise RuntimeError("动作账本写锁获取失败：%s" % self.path)
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        if self._fh is None:
+            return False
+        try:
+            self._fh.seek(0)
+            if os.name == "nt":
+                import msvcrt
+                msvcrt.locking(self._fh.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                import fcntl
+                fcntl.lockf(self._fh.fileno(), fcntl.LOCK_UN)
+        finally:
+            self._fh.close()
+            self._fh = None
+        return False
+
+
 class ActionLedger:
     """一本账＝一条链。账本文件按 run 目录隔离，seq 在该链内单调递增。"""
 
     def __init__(self, path, seed):
         self.path = os.path.abspath(path)
         self.seed = seed
+
+    def anchor_path(self):
+        return self.path + ANCHOR_SUFFIX
+
+    def _write_anchor(self, line, total):
+        """把本轮末端哈希写独立锚点文件（落盘 fsync 后原子替换）。"""
+        obj = {"schema": "act_anchor/1", "ledger": os.path.basename(self.path),
+               "lines": total, "line_sha256": digest(line),
+               "at": time.strftime("%Y-%m-%d %H:%M:%S"), "ts": time.time()}
+        tmp = self.anchor_path() + ".tmp"
+        with io.open(tmp, "w", encoding="utf-8", newline="\n") as f:
+            f.write(json.dumps(obj, ensure_ascii=False, sort_keys=True) + "\n")
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp, self.anchor_path())
+        if os.name != "nt":
+            d = os.open(os.path.dirname(self.anchor_path()), os.O_RDONLY)
+            try:
+                os.fsync(d)
+            finally:
+                os.close(d)
 
     def _anchor(self):
         lines = raw_lines(self.path)
@@ -142,6 +227,9 @@ class ActionLedger:
         os.makedirs(os.path.dirname(self.path), exist_ok=True)
         with io.open(self.path, "a", encoding="utf-8", newline="\n") as f:
             f.write(line + "\n")
+            f.flush()
+            os.fsync(f.fileno())
+        self._write_anchor(line, len(raw_lines(self.path)))
         return line
 
     def records(self):
@@ -161,20 +249,24 @@ class ActionLedger:
         return (max(int(r.get("seq") or 0) for r in recs) if recs else 0) + 1
 
     def append(self, rec):
-        """只追加。prev 由本层现算，调用方不得自带。"""
-        prev = self._anchor()
-        rec = dict(rec)
-        rec["schema"] = "act/1"
-        rec.pop("prev", None)
-        rec["prev"] = digest(prev)
-        line = json.dumps(rec, ensure_ascii=False, sort_keys=True)
-        with io.open(self.path, "a", encoding="utf-8", newline="\n") as f:
-            f.write(line + "\n")
-        with io.open(self.path, encoding="utf-8") as f:
-            tail = [l.rstrip("\n") for l in f if l.strip()][-1]
-        if tail != line:
-            raise RuntimeError("动作账本回读不符，拒绝对外声称已记录")
-        return rec
+        """只追加。prev 由本层现算，调用方不得自带；整段（读锚→写行→fsync→写锚）在写锁内。"""
+        with FileLock(self.path + LOCK_SUFFIX):
+            prev = self._anchor()
+            rec = dict(rec)
+            rec["schema"] = "act/1"
+            rec.pop("prev", None)
+            rec["prev"] = digest(prev)
+            line = json.dumps(rec, ensure_ascii=False, sort_keys=True)
+            with io.open(self.path, "a", encoding="utf-8", newline="\n") as f:
+                f.write(line + "\n")
+                f.flush()
+                os.fsync(f.fileno())
+            lines = raw_lines(self.path)
+            tail = lines[-1] if lines else ""
+            if tail != line:
+                raise RuntimeError("动作账本回读不符，拒绝对外声称已记录")
+            self._write_anchor(tail, len(lines))
+            return rec
 
     def verify(self):
         lines = raw_lines(self.path)
@@ -196,4 +288,24 @@ class ActionLedger:
             else:
                 n += 1
             prev = digest(ln)
-        return {"path": self.path, "lines": len(lines), "records": n, "break": brk}
+        anchor_ok, anchor_why = False, ""
+        ap = self.anchor_path()
+        if not os.path.isfile(ap):
+            anchor_why = "锚点文件缺失：%s" % os.path.basename(ap)
+        else:
+            try:
+                with io.open(ap, encoding="utf-8") as f:
+                    a = json.load(f)
+            except (ValueError, OSError) as e:
+                anchor_why = "锚点文件无法解析：%s" % e
+            else:
+                if int(a.get("lines") or 0) != len(lines):
+                    anchor_why = "锚点行数 %r 与账本行数 %d 不符" % (a.get("lines"), len(lines))
+                elif lines and a.get("line_sha256") != digest(lines[-1]):
+                    anchor_why = "锚点末行哈希与账本末行不符"
+                else:
+                    anchor_ok = True
+        if not brk and not anchor_ok:
+            brk = anchor_why
+        return {"path": self.path, "lines": len(lines), "records": n, "break": brk,
+                "anchor": ap, "anchor_ok": anchor_ok}

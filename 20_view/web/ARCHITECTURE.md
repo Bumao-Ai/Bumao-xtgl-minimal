@@ -178,3 +178,188 @@ Community 端同套测试为 27 项、3 FAIL ＋ 2 ERROR（多一项 `test_manif
 - 发版前固定三步：本地重算清单 → 本地比对 → 两端测试全过（清单与比对工具为本地工具，不发布）；
 - 人工判定记录放仓库外（`~/.xtgl/manual.json`），两版控制台共用同一份；
 - 版别口径：Minimal 版 = 零规则版，不含生效规则，只给工具链＋`examples/` 28 条示例模板；Community 版 = 基础规则版，44 条生效规则。控制台标题取 `web_config.json` 的 title「Bumao XTGL」＋ product_edition；`10_rac/meta.json` 的 name 与之一致：Minimal 版「Bumao XTGL Minimal」、Community 版「Bumao XTGL Community」。两端拼写统一为 Bumao。
+
+---
+
+## English
+
+# XTGL Architecture · Core 0.10 (Minimal Edition)
+
+> Many systems, one kernel. Start with a modular monolith; split only when independent deployment is genuinely needed.
+> This document describes the boundaries that **already exist** and the things we **explicitly do not do yet**; it is not a wish list.
+> It describes only the actual Minimal edition; Minimal and Community share the same frontend and the same kernel, and differ through capability switches.
+
+---
+
+## 1. Goals and non-goals
+
+**Goals**: local-first, rule-driven, extensible; one kernel supports multiple systems; workspace data follows one spec;
+outside parties (including AI) can extend by contract, but cannot change the kernel.
+
+**Not doing now**: microservices, plugin marketplace, hot reload, permission system, multi-device sync.
+The reason is in section 7 — when there is only one maintainer, architectural complexity is the biggest enemy.
+
+---
+
+## 2. Layers
+
+```text
+User config (rule packs / workspace / data sources / automation)
+        │
+Business modules (capabilities already enabled such as gates / backup)
+        │
+XTGL Core (config · paths · rule merge · gate invocation · data reading · module manifest · write-interface boundary)
+        │
+Workspace data (00_meta / 10_rac / 20_view / 30_taizhang / 40_renwu)
+```
+
+Four disciplines:
+
+1. modules only call Core and never read other modules' private files directly;
+2. Core knows no specific business; it knows only four kinds of data: "rules, tasks, documents, gates";
+3. views can be rebuilt; the real body exists only once;
+4. writes must be explicit (wizard interface); reads are read-only by default.
+
+---
+
+## 3. Core's boundary
+
+| Core is responsible for | Core is not responsible for |
+|---|---|
+| Config parsing (v1/v2 compatible) | What a specific business page looks like |
+| Site root resolution (CLI / environment variable / config / default) | AI model calls and prompts |
+| Three-layer rule merge and conflict rejection | File cleanup policy (reports only, never deletes) |
+| Invoking the engine and returning raw output | Permissions and multi-user |
+| Task directories and archive decisions | Database / remote sync |
+| Module manifest and version compatibility | Implementation details inside modules |
+| Local boundary of the write interface | Third-party plugin runtime |
+
+Core's public surface is the public methods of the `Console` class in `xtgl_core.py`, plus `modules.json`.
+
+---
+
+## 4. Module contract v1
+
+The manifest is in `modules.json`; the validation tool is a maintainer-local tool (local tool, not published):
+
+| Field | Meaning | Constraint |
+|---|---|---|
+| `id` | Unique identifier | Lowercase, unique |
+| `name` | Display name | Non-empty |
+| `version` | Module version | Semver |
+| `core` | Compatible kernel range | `^0.10` means the same kernel version |
+| `kind` | Type | `builtin` / `local` / `experimental` |
+| `status` | State | `active` / `planned` / `disabled` |
+| `desc` | One-line description | May be empty but recommended |
+
+Hard rules:
+
+- modules **must not declare kernel write permission** (a `write` / `mutate` in the manifest fails immediately);
+- when a module and the kernel are version-incompatible, both the validation tool and the page flag it;
+- only "built-in modules" are supported for now: the manifest is a boundary declaration, not a plugin loader.
+
+The validation command is not shipped with the public repository (local tool, not published); the text and the fields in the table are the contract itself.
+
+---
+
+## 5. Workspace data spec v1
+
+| Path | Purpose | Rule |
+|---|---|---|
+| `00_meta/meta.json` | Single point for the version | Required; `version` is the only version source |
+| `10_rac/` | Engine and the real body of the rules | The engine may be absent; `rules/` is disabled by default |
+| `10_rac/examples/` | Example templates | 5 chapters, 28 items; illustrative only, not used in judging |
+| `20_view/` | Views | Rebuildable, never hand-edited |
+| `30_taizhang/` | Ledger | Append-only |
+| `40_renwu/<task>/` | Tasks and archives | At least one archive per directory |
+| `20_view/web/` | Console | This directory; the core file list is in `core_manifest.json` |
+
+An archive always has three fixed parts: summary header / body details / index tail; the summary header must state the "executor" (model + client),
+and must not bear the user's own name.
+
+---
+
+## 6. Versions and compatibility
+
+- Core uses `major.minor` (currently `0.10`), and modules declare `^0.10`;
+- a breaking change bumps the major version, and module manifests must update their range in sync;
+- deprecation is announced at least one minor version ahead, with the migration path written in the README;
+- the data spec only adds fields and never changes semantics; new fields must be optional;
+- core files are locked by sha256 in `core_manifest.json`; any inconsistency inside an edition counts as a failure.
+
+---
+
+## 7. Why a modular monolith first
+
+1. **Few maintainers**: one person maintaining ten services equals ten deployments, ten sets of logs, and ten rounds of troubleshooting.
+2. **Debugging cost**: in a monolith one breakpoint can walk you through the whole path; once split you first have to prove "it is not a network problem".
+3. **AI generation needs deterministic boundaries**: the interface surface of a monolith is small, which is what makes it possible for AI to generate verifiable modules.
+
+When to split: once any one of "must be deployed independently", "must be upgraded independently", "external developers need their own releases" appears,
+split then, not earlier.
+
+---
+
+## 8. Guardrails for AI-native development
+
+AI is allowed to generate modules, but it must go through four steps:
+
+```text
+AI generation → module_check manifest validation → unit tests → human acceptance
+```
+
+- AI must not modify the kernel semantics of `xtgl_core.py` / `modules.json`;
+- a module's write operations may only go through declared interfaces;
+- modules without tests do not enter `status: active`;
+- the acceptor looks at only three things: whether it runs, whether failures are explained clearly, and whether it secretly writes to other directories.
+
+In one sentence: **AI can write fast, but the machine must verify strictly.**
+
+---
+
+## 9. Two public releases, one kernel
+
+| Release | Form | Current relationship |
+|---|---|---|
+| Bumao XTGL / Minimal | Web console + zero effective rules, providing only the toolchain and example templates | Shares the same kernel and the same frontend with Community |
+| Bumao XTGL / Community | Web console + 44 effective rules | Shares the same kernel and the same frontend with Minimal |
+
+Convergence status (measured 2026-11-07): there is one gate kernel `engine.py`, located in the separate repository `bumao_core`; neither side carries a copy of the kernel inside `10_rac/`, it is imported per the deployment convention.
+**Shared frontend**: `index.html`, `setup.html` and `tutorial.html` are the same file on both sides, with no per-edition branches; edition differences are written only in `web_config.json`'s `capabilities` / port / rule directory / engine command.
+**Known differences**: in `xtgl_core.py` only the default port constant differs (Community 8802 / Minimal 8804); the remaining 12 files are byte-identical by design.
+**Known debt**: the rendering and rule-loading layer (`render.py` / `rules_db.py`) is still two separate sets, one per side, and the interfaces do not match — the side that reads meta calls it `meta_load()`, while the other side calls it `dbm.load_meta()`, and the signature of `targets(meta)` also differs. Rendering-layer convergence is not in scope for this round.
+Also note: the kernel lives in a separate repository, so cloning this repository alone does not get it and `check --strict` cannot run (this is a known integration boundary).
+
+---
+
+## 10. Current state (measured 2026-11-07 19:47—19:50)
+
+| Item | Value |
+|---|---|
+| Core version | 0.10 (the `CORE_VERSION` of `xtgl_core.py` = the `core_version` of `core_manifest.json`) |
+| Manifest generation time | 2026-11-07 19:47:40 |
+| Kernel files | 13 (registered in `core_manifest.json`; including tutorial.html / i18n.js / modules.json / xtgl_clean.py / design_tokens.json) |
+| Built-in modules | **20** (the current list in `modules.json`; the console shows only the enabled part according to `capabilities`) |
+| Capabilities of this edition | `gate` / `backup`, 2 in total; the console trims tabs and cards by capability and does not show capabilities that are not enabled |
+| Manifest reconciliation | Conclusion for this edition `PASS：13 个核心文件与清单一致（内核 0.10）` (the verification tool is a local tool, not published) |
+| Core of both editions | 12/13 byte-identical by design; measured today, 3 files differ: `xtgl_core.py` (port constant), `index.html`, `kernelsync.py` (the latter two await recomputation after the Community side's parallel changes) |
+| Kernel tests | `tests/test_core.py`, 27 items in total; this edition currently has **2 FAIL + 2 ERROR** |
+| Minimal edition rules | 0.10, `rules/` has zero effective rules; `examples/` has 5 chapters, 28 example templates |
+| check for this edition | `check --strict` conclusion `ALL PASS` (section A 11 items + section B 16 items = 27 items) |
+
+Current red items (measured on this edition):
+
+- FAIL ×2: `TestManual.test_manual_overrides_machine` (reads and writes the host's real `~/.xtgl/manual.json`, health `33 != 100`); `TestModules.test_incompatible_module_is_flagged`.
+- ERROR ×2: `TestConfig.test_corrupt_config_does_not_crash` (`json.decoder.JSONDecodeError`); `TestPath.test_empty_config_gives_setup_required` (`xtgl_core.ConfigError`: the temporary config lacks `engine.cmd`).
+
+The same test set on the Community side has 27 items, 3 FAIL + 2 ERROR (one extra `test_manifest_matches_files`, caused by the manifest not being recomputed after parallel changes). The red items and their causes have been logged in the defect record; the fix approach is pending a ruling.
+
+---
+
+## 11. Version sync discipline (official release)
+
+- any official-edition capability (manual judging, health, export, tutorial) must land in **both** public releases at the same time;
+- differences between the two sides are allowed only in `web_config.json` (edition wording / port / rule directory / engine command) and the default port constant in `xtgl_core.py`;
+- before every release there are three fixed steps: recompute the manifest locally → compare locally → all tests passing on both sides (the manifest and comparison tools are local tools, not published);
+- manual judging records live outside the repository (`~/.xtgl/manual.json`), and both consoles share the same file;
+- edition definition: Minimal = zero-rule edition, containing no effective rules, providing only the toolchain plus the 28 example templates in `examples/`; Community = base-rule edition, with 44 effective rules. The console title is the title "Bumao XTGL" from `web_config.json` plus product_edition; the name in `10_rac/meta.json` matches it: Minimal is "Bumao XTGL Minimal", Community is "Bumao XTGL Community". The spelling is unified as Bumao on both sides.

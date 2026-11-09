@@ -78,3 +78,86 @@
 - 六层工作区与真身／视图／台账三层资产。
 - 四步改规则流程与全量闸门自检。
 - Web 控制台（默认 8804）。
+
+---
+
+## English
+
+### 0.28 — 2026-11-09
+
+Kernel sync to core v0.2.2; in-app version back-filled to the release series.
+
+- **Bump rationale: 0.17→0.18 (+0.01 normal promotion) →0.28 (+0.10, kernel crossing tiers 0.1→0.2, stacked within one release)** — per the 0.6.8 stepwise bump rule at `HX\personal\20_view\di00_qidong_zongze.txt` L55—60: no skipped numbers, no skipped tiers.
+- **In-app version `0.10` → `0.28`** — the effective declaration `00_meta/meta.json` and the `10_rac/meta.json` actually read by the executor are aligned; the two-version-spaces note in `README.md` is aligned.
+- **Bundled kernel synced to core `v0.2.2`** — taken from the tag contents, not a working-tree copy; the whole directory overwrites `kernel/bumao_core/`, adding `host_reference.py`, `test_a10_policy.py`, `test_gate_registry.py` and the `jiancha/` runtime subpackage.
+- **Unchanged** — 0 rules / 28 checks; the `A10` / `A13` verdict logic and evidence inputs are untouched.
+
+### 0.17 — 2026-11-09
+
+Kernel sync only; this is the last release of this phase.
+
+- **Kernel synced with core `v0.2.0-beta.5`** — `engine.py`, `gate_registry.py`, `bumao_core_rules.py`, `gate_count.py`, `test_equivalence.py` and `HOST_CONTRACT.md` under `kernel/bumao_core/` are overwritten to the same core release, with core as the only upstream source.
+- **`build_parser()` duplicate-registration fix** — the old kernel called `sub.add_parser("check")` twice, so calling it raised `argparse.ArgumentError: conflicting subparser: check`; `main()` used to build a separate parser, so the documented parameters were never actually registered. Now there is only one, reused by `main()`.
+- **Three parameters moved from documented promises to real implementations** — `check --quick` (runs only the section A structural gates, and the conclusion line states it cannot replace `--strict`), `whoami --full` (appends 4 diagnostic lines, byte-for-byte unchanged without it), `selftest --kernel` (6 host-independent self-checks). Bundled `kernel/bumao_core/test_build_parser.py` (4/4).
+- **Two loading modes coexist** — new `kernel/bumao_core/__init__.py`, so both `pip install -e .` and the historical `sys.path.insert` work; on a single-repo clone `gate_count.py` / `test_equivalence.py` now print "requires the three editions checked out at the same level" and exit 2, no longer faking green or reporting false red.
+- **Unchanged** — 0 rules / 28 checks, in-app version `0.10`, layout; the `A10` / `A13` verdict logic is untouched and still DENYs when there is no same-day authorization entry.
+- **Known reds (design behaviour)** — the local working tree already has a baseline, so changing kernel files that day makes `A13` red (`改而未授权`); `A10` always DENYs because the bundled approval ledger has zero entries. A downloaded artifact has no baseline on first run, so `A13` first enrolls the baseline and then passes, leaving only `A10`.
+
+### 0.16 — 2026-11-09
+
+This release only fixes where the gates find the ledger; no verdict was relaxed.
+
+- **A10 / A13 evidence-lookup correction** — on a single-repo clone the "area root" was originally taken as the parent outside the repo, so `A10` could not read `30_taizhang/shenpi_jilu.txt` and could only report "no approval ledger". Now, when this repo root contains `30_taizhang/`, this repo root is the area root. Area-root resolution fixed so `A10` can see the shipped ledger template on a single-repo clone.
+- **No more sibling directories** — the old `find_approval_ledger()` implementation walked up and then back through sibling directories, reading another repo's approval ledger under the release repos' sibling layout; the conclusion was still `DENY` but the reason was wrong. It now searches only along direct ancestors. No more sibling-directory scan.
+- **Bundled approval-ledger structure template** — new `30_taizhang/shenpi_jilu.txt` (zero entries), and `A10` prints `A10 判定=DENY ｜ 判拒（DENY · 策略 deny）：审批册里没有可解析的【第 N 号】条目`. Shipped zero-entry template makes the DENY explicit and judgeable.
+- **Unchanged** — 0 rules (`zero_rules` declaration), 28 gates, in-app version `0.10`, `test_reverse.py` 5/5, `test_pretool.py` 10/10. Rules, gate count, in-app version and tests unchanged.
+- **Known reds** — `check --strict` `1/28` (only `A10`, DENY by design). `1/28` red, only `A10`.
+
+### 0.15 — 2026-11-08
+
+This release ships a real security change: escape tokens can be bound to one exact tool + payload.
+
+- **Escape-token binding** — `issue_token(reason, ttl_seconds, tool_name=None, payload=None)` in `10_rac/pretool/escape.py` gains optional binding; `is_valid(tok, tool_name, payload)` checks `sha256(tool_name + "\0" + payload)` for bound tokens. `10_rac/pretool/core.py` computes the payload first and then validates the token, passing the tool name and payload together. Before: a token could be spent on any dangerous call inside its TTL. Now: a bound token only honors the exact tool + payload it was issued for; a mismatch falls back to L3 and does not consume the token.
+- **Backward compatible** — calls that pass no `tool_name`/`payload` keep the old (unbound) behaviour, so existing callers need no change. Unbound tokens keep the old behaviour.
+- **Regression case** — `10_rac/tests/test_pretool.py` adds 1 case: a bound token rejects another command, allows the named command, and rejects a replay of the same token; actually run 10 cases / 10 pass. Adapter suite is now 10 cases, all passing.
+- **Unchanged** — 0 effective rules, 28 gates, in-app version `0.10`, kernel, layout, launcher and views are all unchanged. Rules, gate count, in-app version, kernel, layout, launcher and views unchanged.
+- **Known reds** — a clean clone shows `2/28` on two consecutive runs (`A10`, `A13`; public repos do not ship an approval ledger, red by design). Clean clone: `2/28` on both runs (`A10`/`A13` by design).
+
+### 0.14 — 2026-11-08
+
+This release ships real behaviour changes: encoding-safe entry points and a portable launcher.
+
+- **Encoding fix** — the `__main__` blocks of `10_rac/BumaoXTGL_Minimal_v01.py`, `20_view/web/serve.py` and `20_view/web/xtgl_core.py` now call `reconfigure(encoding="utf-8", errors="replace")` on both `stdout` / `stderr`, the same as the kernel's `serve.py` / `xtgl_core.py`. Before: on a cp936 console or with missing glyphs, a rare character could abort the check with `UnicodeEncodeError`; now it degrades to a replacement character and the run continues. Before: a rare glyph could abort the run with `UnicodeEncodeError`. Now: it is replaced instead of raising.
+- **Launcher** — `20_view/web/qidong_kongzhitai.bat` sets `PYTHONUTF8=1` / `PYTHONIOENCODING=utf-8` before calling any interpreter; the probe order changes to `py -3 → python3 → python → python_path.txt` (local override last), each candidate is run with `-c "import sys"`, and the Windows Store stub `python.exe` (exit code 9009) is skipped. The launcher probes `py -3 → python3 → python → python_path.txt`, runs each candidate, and rejects the Store stub.
+- **Unchanged** — 0 effective rules, 28 gates, in-app version `0.10`, layout and views unchanged. Rules, gate count, in-app version and layout are unchanged.
+- **Docs and maintenance status** — README gains `Status: maintenance pause` / 「状态：维护暂停，稳定可用」 at the top; new `RETURN_HERE.md` as the cold-start entry for resuming iteration (look at three things first, touch `CHANGELOG.md` first). README status line and `RETURN_HERE.md` added.
+- **R6 / R8 are not in this repo** — this repo has no `B22` gate, and the reverse suite `10_rac/tests/test_reverse.py` already runs on sandbox copies (5 cases, unchanged). The `B22` content-hash boundary and the 28-case shadow-copy reverse suite belong to community / personal and are not claimed here. No `B22` here; the 5 reverse cases already run on sandbox copies and are unchanged.
+- **Known reds** — `check --strict` shows `2/28` on both runs (`A10`, `A13`; public repos do not ship an approval ledger, red by design). Known reds: `A10`/`A13` by design.
+
+### 0.13 — 2026-11-08
+
+This release aligns naming and structure and ships the kernel contract; it adds no UI feature.
+
+- Before: gate `A10` threw `FileNotFoundError` on a fresh clone, because `kernel_contract.json` was not in the repository. Now: `kernel/kernel_contract.json` and `kernel/contract_test.py` ship at the path `engine.py` reads (`kernel/`, one level above `kernel/bumao_core/`), so `A10` reports the missing approval ledger instead of crashing.
+- Before: README opened with gate IDs and directory internals. Now: first screen answers what/who/problem, English first, Chinese below.
+- Before: no screenshots. Now: two real captures in `docs/screens/` — `check --strict` output and the shipped tree.
+- Before: install command followed `main`. Now: pinned to `v0.13` and verified with `SHA256SUMS`.
+- Check count corrected to 28 (the `27 gates` line was wrong); a fresh clone reports `2/28 gates red` (A10/A13, not applicable).
+- No rule or gate change: `git diff v0.12..HEAD -- 10_rac/ 20_view/` is empty; the only `kernel/` additions are the contract pair above.
+
+### 0.1.1 — 2026-11-08
+
+Bundled kernel.
+
+- This repo adds `kernel/bumao_core/`, so a clone runs without an external `bumao-core`.
+- The entry script's kernel lookup path changes from `../../kernel/bumao_core` to `../kernel/bumao_core`.
+- Kernel maintenance model: `bumao-core` is the only source, and the whole directory overwrites this repo's copy.
+
+### 0.1 — 2026-11-08
+
+First public release.
+
+- Skeleton edition: 0 effective rules, with 28 example templates / a 5-chapter structure.
+- Six-layer workspace plus the three-layer assets: real body / views / ledgers.
+- Four-step rule-change workflow plus full-gate self-check.
+- Web console (default 8804).

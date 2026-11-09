@@ -92,6 +92,14 @@
       "ticket": true
     },
     {
+      "code": "DENIED_ZONES_INVALID",
+      "stage": "load",
+      "zh": "拒绝区配置无效",
+      "when": "denied_zones 不是列表，或其中一项不能归一化成相对路径",
+      "effect": "装载即拒（不做静默跳过），运行期同判一律不放行",
+      "ticket": true
+    },
+    {
       "code": "WORKSPACE_OUTSIDE_ROOT",
       "stage": "load",
       "zh": "workspace 解析后越出沙盒根",
@@ -159,8 +167,16 @@
       "code": "TARGET_OUTSIDE_WORKSPACE",
       "stage": "action",
       "zh": "目标实际解析越出 workspace",
-      "when": "commonpath 判定越根，或目标盘符与 workspace 不同",
+      "when": "真实路径（realpath）判定越根，或目标盘符与 workspace 不同",
       "effect": "动作前拒，写 denied 记录并中断",
+      "ticket": true
+    },
+    {
+      "code": "TARGET_UNRESOLVABLE",
+      "stage": "action",
+      "zh": "目标真实位置无法判定",
+      "when": "链接悬空、父级不是目录、真实路径解析失败",
+      "effect": "动作前拒（fail-closed），写 denied 记录并中断",
       "ticket": true
     },
     {

@@ -18,3 +18,19 @@
 维护方式：每次版本变更前，由用户在本文件写下当日授权条目；不要把授权条目写进
 代码或契约里自证。模板本身不含任何条目，因此公开仓的 A10 固定判 DENY —— 这是
 设计结果，不是故障。
+
+【第 1 号】 2026-11-09
+用户批准原文：「授权」
+说明：本轮 2026-11-09 随 core v0.2.4 改动覆盖：kernel/bumao_core/HOST_CONTRACT.md、engine.py、gate_registry.py、bumao_core_rules.py、gate_count.py、test_equivalence.py、__init__.py、host_reference.py、test_a10_policy.py、test_build_parser.py、test_check_rc.py、test_gate_registry.py、test_jiancha_ledger.py、test_jiancha_loader.py、test_jiancha_recovery.py、test_jiancha_scope.py、jiancha/*.py、kernel/kernel_contract.json、kernel/contract_test.py、10_rac/meta.json、20_view/web/index.html。
+
+【第 2 号】 2026-11-09
+用户批准原文：「（原话已脱敏移除）」
+说明：本轮 2026-11-09 随 core v0.2.4 改动覆盖：kernel/bumao_core/HOST_CONTRACT.md、engine.py、gate_registry.py、bumao_core_rules.py、gate_count.py、test_equivalence.py、__init__.py、host_reference.py、test_a10_policy.py、test_build_parser.py、test_check_rc.py、test_gate_registry.py、test_jiancha_ledger.py、test_jiancha_loader.py、test_jiancha_recovery.py、test_jiancha_scope.py、jiancha/*.py、kernel/kernel_contract.json、kernel/contract_test.py、10_rac/meta.json、20_view/web/index.html。
+
+【第 3 号】 2026-11-09
+用户批准原文：「（原话已脱敏移除）」
+说明：本轮 2026-11-09 随 core v0.2.4 改动覆盖：kernel/bumao_core/HOST_CONTRACT.md、engine.py、gate_registry.py、bumao_core_rules.py、gate_count.py、test_equivalence.py、__init__.py、host_reference.py、test_a10_policy.py、test_build_parser.py、test_check_rc.py、test_gate_registry.py、test_jiancha_ledger.py、test_jiancha_loader.py、test_jiancha_recovery.py、test_jiancha_scope.py、jiancha/*.py、kernel/kernel_contract.json、kernel/contract_test.py、10_rac/meta.json、20_view/web/index.html。
+
+【第 4 号】 2026-11-09
+用户批准原文：「（原话已脱敏移除）」
+说明：本轮 2026-11-09 随 core v0.2.4 改动覆盖：kernel/bumao_core/HOST_CONTRACT.md、engine.py、gate_registry.py、bumao_core_rules.py、gate_count.py、test_equivalence.py、__init__.py、host_reference.py、test_a10_policy.py、test_build_parser.py、test_check_rc.py、test_gate_registry.py、test_jiancha_ledger.py、test_jiancha_loader.py、test_jiancha_recovery.py、test_jiancha_scope.py、jiancha/*.py、kernel/kernel_contract.json、kernel/contract_test.py、10_rac/meta.json、20_view/web/index.html。

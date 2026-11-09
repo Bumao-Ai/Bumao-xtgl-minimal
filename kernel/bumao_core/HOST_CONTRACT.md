@@ -333,3 +333,342 @@ bumao_core/jiancha/
 - **相对导入**：包内一律 `from . import ...`。宿主 `10_rac/` 下已有同名 `ledger.py`（另一套账本），不得用 `sys.path` 插入后绝对导入，否则会顶掉宿主模块。
 - **契约边界**：运行层不改变宿主必须实现的 12 个成员，也不改变任何内核判定；它只消费宿主注入的事件与文件树。
 - **状态口径**：恢复遇失败即中止整轮、已恢复件保留；不新增 `partial` 状态；失败码 `RESTORE_FAILED`。
+
+---
+
+# English（HOST_CONTRACT）
+
+# bumao_core Host Contract（HOST CONTRACT）
+
+> This document answers one question: **what must an external product implement in order to integrate with this kernel.**
+> The kernel itself carries no rules, no business logic and no edition name; rules, the gate list and paths are all supplied by the host.
+>
+> This document describes the contract only; it does not constitute authorization to start work.
+
+- Kernel version this contract corresponds to: **Bumao Core 0.10** (`engine.py` is the sole runtime implementation)
+- Contract version: **implicit-v1** (no machine validation yet, see §六 defect 1)
+- Applies to: any host edition. A host edition consists of two parts——**wrapper** (the startup entry, responsible for injection and registration) and **rules_db** (the rules library module, responsible for data and check functions).
+- Source of version numbers: the kernel itself stores no edition name; at runtime it takes `name` / `version` / `effective` from the host `meta`.
+
+---
+
+## 一、Four Steps of Integration
+
+```python
+import sys, os
+sys.path.insert(0, r"<内核目录绝对路径>")   # 内核不是包，只能这样加载（见 §五）
+sys.path.insert(0, HERE)                     # 宿主自己的目录
+
+import engine as core                        # 1. 拿内核
+core.configure(rules_db_module=my_rules_db)  # 2. 注入规则库模块
+core.register("B1", my_gate_fn, "闸门说明")   # 3. 逐个注册闸门
+core.set_expected("MyEdition", frozenset(["B1", ...]))  # 4. 声明期望集（防缩水基准）
+sys.exit(core.main(["check", "--strict"]))   #    跑检查，退出码即结论
+```
+
+**Order constraints**:
+
+1. `configure()` must be called first——except for `selftest --kernel`, no command is available before injection;
+2. `set_expected()` must be called after all `register()` calls are complete;
+3. `main()` is called last, and its return value is the process exit code.
+
+The host wrapper must perform these five actions itself: `import engine as core`, `configure(rules_db_module=...)`, `register(...)` one by one, `set_expected(...)`, `sys.exit(core.main(...))`. The kernel does none of them on the host's behalf.
+
+---
+
+## 二、Public Function Signatures of the Kernel
+
+| Function | Signature | Notes |
+|---|---|---|
+| `configure` | `configure(rules_db_module=None)` | **Must be called first.** Only stores the module into the global `_rdb` |
+| `register` | `register(gid, fn, label, section="B")` | Registers a single gate. `section` takes `"B"` (physical gate) or `"Z"` (criteria gate); any other value falls into B |
+| `register_all` | `register_all(category_fn_map, category="B")` | Batch-registers from a `{gid: fn}` dict, with label fixed to `"(auto-discovered)"`; returns the list of registered gids |
+| `set_expected` | `set_expected(section, expected_set)` | Declares the expected gate set for this edition. **Must be called after all `register()` calls** |
+| `verify_registration` | `verify_registration(expected_set, edition_name="unknown")` | Anti-shrinkage validation: computes `missing = expected - registered`, `extra = registered - expected` |
+| `main` | `main(argv=None)` | CLI entry; the return value is the exit code. Internally calls `build_parser()` only once (since 2026-11-09) |
+| `build_parser` | `build_parser()` | The single CLI parser definition; 7 subcommands, each registered once |
+| `cmd_check` | `cmd_check(strict=False, quick=False)` | `check` subcommand implementation; `quick=True` runs only section A structural gates |
+| `cmd_whoami` | `cmd_whoami(full=False)` | `whoami` subcommand implementation, always returns 0; `full=True` appends 4 lines of diagnostic information |
+| `cmd_selftest` | `cmd_selftest(kernel=False)` | `selftest` subcommand implementation; `kernel=True` runs the kernel self-test, which needs no host |
+| `cmd_selftest_kernel` | `cmd_selftest_kernel()` | Kernel self-test: reads no host rules library, writes no host ledger |
+
+### CLI subcommands (7)
+
+`whoami / check / audit / bump / show / selftest / refresh`
+
+- `check` supports `--strict` and `--quick`:
+  - `--strict` is a legacy-compatible flag. In the current version any FAIL makes the exit code non-zero (it does not report success merely because `--strict` is absent), so it does not change the criteria;
+  - `--quick` **runs only section A structural gates**, skipping the host-injected B/Z sections, the anti-shrinkage reconciliation and the writing of the check credential; the conclusion line states explicitly that it "cannot replace `check --strict`".
+- `whoami` supports `--full`: appends 4 lines——kernel path, Python version, rules directory, subcommand list; without `--full` the output is verbatim identical to historical versions.
+- `bump` supports `--level` (default `L1`);
+- `show` requires a clause id;
+- `selftest` supports `--kernel`: kernel self-test (no host); without `--kernel` it is the host integration self-test, and if `rules_db` has not been injected it prints "内核自检需宿主注入规则库（rules_db）" and returns `2`.
+
+**Exit code convention**: `0` means everything passed or the command completed normally; non-`0` means a FAIL exists, an exception occurred, or there is a parameter error.
+`cmd_whoami` is the exception: when drift is non-zero it prints "未接入（先 render.py write）" but still returns 0——the stop criterion is borne by `check --strict`.
+
+If the host entry documentation disagrees with the commands in this document, **this document prevails**; the kernel actually registers only the 7 subcommands listed above.
+
+---
+
+## 三、The Rules Library Module (`rules_db`) the Host Must Provide —— 12 Members
+
+After `configure(rules_db_module=X)`, the kernel records `X` as `dbm` and accesses it as in the following table.
+
+| # | Member | Required? | Guard | Semantics |
+|---|---|---|---|---|
+| 1 | `load()` | **Required** | none | Loads the raw rule data |
+| 2 | `index(db)` | **Required** | none | Builds the index; **the return value must be a dict containing the three keys `meta` / `clauses` / `chapters`** |
+| 3 | `load_meta()` | **Required** | none | Returns a dict; the kernel takes the three keys `name` / `version` / `effective` |
+| 4 | `dup_ids(db)` | **Required** | none | Returns a list of duplicate ids; **an empty list `[]` means there are no duplicates** |
+| 5 | `block_broken(clauses)` | **Required** | none | Block-broken check |
+| 6 | `shell_clauses(db)` | **Required** | none | Empty-shell clause check |
+| 7 | `ROOT` | optional | yes | Product root directory, level 1 of the four-level fallback |
+| 8 | `_inner.ROOT` | optional | yes | **Private member**, level 2 |
+| 9 | `HERE` | optional | yes | Level 3; if all three levels are missing it falls back to `os.path.dirname(directory containing the engine)` |
+| 10 | `render_all(meta, db)` | optional | yes | Renders all views, returns the number rendered |
+| 11 | `check_drift()` | optional | yes (`getattr` + `sys.modules` double fallback) | Returns a drift list; `whoami` uses it to print "视图漂移：N 处" and "接入状态" |
+| 12 | `daiban` (**module object**, must contain `parse()` and `_date()`) | optional | yes | Data source for recurring todos; the kernel does **not** `import` a global module name, it only reads the injected member |
+
+**Constraints**:
+
+- Items 1–6 have no `hasattr` guard; missing any one raises an exception immediately and the command fails.
+- Items 7–9 are used for the product root directory fallback; the whole block has `try/except`, so all being absent does not crash.
+- Resolution order for item 11: first take the injected `dbm.check_drift`; then fall back to `check_drift` on the host's **already-imported** `render` / `rules_render` modules; if neither is available it prints "视图漂移：宿主未提供 check_drift，无法计算" + "接入状态：未就绪（漂移未算出）"——**when it cannot get the value it says so; no fake numbers**.
+- When item 12 is unavailable, it outputs the fixed fallback line per the "Recurring-todo fallback contract" below; this is not counted as a defect.
+- Item 8 is a private member, but it has already entered the external contract (see §六 defect 2).
+
+### The bundled `bumao_core_rules.py` is a reference implementation and **does not participate in runtime**
+
+`bumao_core/bumao_core_rules.py` only demonstrates how the three historical rule directory formats (`zhunze/`, `ZH/`, `rules/`) are parsed;
+**it does not satisfy the 12-member contract above**: it lacks `load()`, `dup_ids()`, `render_all()` and a module-level `ROOT`
+(what it provides is `load_db()` / `duplicate_ids()`).
+
+- The kernel `engine.py` has **zero references** to this module, and the three edition wrappers also have zero references;
+- **Do not** pass this module directly to `configure()`——missing members will raise an exception on the very first command;
+- The real integration path is to provide your own `rules_db` that satisfies the 12 members; a minimal runnable example that can be copied directly is at the repository root
+  `examples/minimal_host.py`.
+
+### Recurring-todo fallback contract (settled 2026-11-08)
+
+When item 12 is missing, or the member does not contain `parse` / `_date`, **the fallback text is the contractual behavior**: it is not treated as a defect, and the core logic of neither edition is changed. The fixed output must be verbatim identical (including the trailing file name):
+
+```
+周期待办：宿主 rules_db 未注入 daiban 成员（须含 parse／_date）——须手读宿主规程目录下 daiban_zongbiao.txt
+```
+
+Constraints:
+
+- `whoami` must exit with code 0, and that line must be verbatim identical to the line above; it must not raise an exception and must not fabricate a count.
+- The two open-source editions (community / minimal) do not provide `daiban.py`; that is a normal form within the contract; personal provides the data source and outputs real todos.
+- Acceptance method: run `whoami` on both editions and compare the whole "周期待办：" line; it must be byte-for-byte identical.
+
+### Zero-rule editions: `meta["zero_rules"]` + rules-directory member `RULES_DIR`
+
+The A1 criterion is:
+
+```
+(n_ch > 0 and n_cls > 0) or (meta["zero_rules"] 为真 and 规则目录下 .json 计数为 0)
+```
+
+When declaring `zero_rules`, the host must additionally expose the rules-directory member `RULES_DIR` (when the directory is unavailable the kernel falls back to reading `ZH`).
+`RULES_DIR` **is not among the 12 contract members in the table above**; it is an additional hard requirement for zero-rule editions.
+
+| Case | A1 verdict |
+|---|---|
+| Has effective clauses | **PASS** (takes the first branch, does not count the directory) |
+| Declares `zero_rules` and the `.json` count in the rules directory is 0 | **PASS** |
+| Declares `zero_rules` but the rules directory contains `.json` files | **FAIL** |
+| Declares `zero_rules` but the rules directory is not exposed / does not exist | **FAIL** (detail records `unverifiable`) |
+| Declares `zero_rules`, directory not empty, **and clauses can be loaded** | Takes the first branch and is ruled green (**no reverse gate added**) |
+
+### Optional host extension members (not contractually required)
+
+Besides the 12 items above, the kernel also reads several host extensions via `getattr`; when they are absent each command falls back, which does not affect the validity of the contract:
+
+- `META_PATH` —— `bump` locates the meta file;
+- `ZH` —— the second candidate for the rules directory;
+- `enforce_decl` —— A12 mandatory / restrictive clause and gate-slot wiring;
+- `record_check_result` —— check result write-back.
+
+---
+
+## 四、What the Kernel Does Not Provide (Capability Boundary)
+
+| Not provided | Criterion |
+|---|---|
+| Any concrete rule | 0 inside the kernel; all rules are in the host rule package |
+| Any edition name / business name | No edition name and no business name inside `engine.py` |
+| Any service / SDK / IPC | In all kernel `.py` files there is no `http` / `socket` / `grpc` / `daemon` / `server` / `api` |
+| Package installation capability | Provides `pyproject.toml` (`pip install -e .` works) and `__init__.py`; the flat `sys.path.insert` loading is retained at the same time (see §五) |
+| Gate list | Gates are supplied by the host wrapper's explicit `register()`, **not data-driven** |
+
+**What it is**: a CLI-style **rule execution / governance framework**. Its selling point is "trustworthy execution"——rules set by the host are executed to the letter, and conclusions cannot be silently relaxed, skipped or forged (the anti-shrinkage mechanism is described in §七).
+**What it is not**: it is not an application runtime. Web apps, games and desktop software do not "run on top of it"; they only "call it to perform one check".
+
+---
+
+## 五、Loading Methods (two, choose either)
+
+**Method A: package installation (since 2026-11-09)**
+
+```bash
+pip install -e .
+```
+
+```python
+from bumao_core import engine
+```
+
+**Method B: directory hard-binding (historical usage, kept working)**
+
+```python
+sys.path.insert(0, "<内核目录绝对路径>")
+import engine
+```
+
+**Constraints**:
+
+- Both methods load the same `engine.py`; intra-package imports are already compatible with both relative and flat imports, with identical behavior.
+- The kernel directory can be moved wholesale; after moving, Method B still succeeds because the kernel does not depend on its position in the project tree.
+- Running `whoami` without `configure()` prints `[ERROR] whoami failed: rules_db not configured. Call configure() first.` and returns exit code 1, so CI can fail on it.
+- Running `selftest` without `configure()` prints "内核自检需宿主注入规则库（rules_db）；独立运行请用：`python -m bumao_core.engine selftest --kernel`" and returns exit code 2; `selftest --kernel` needs no host files at all.
+- The gate template file `bumao_core_gates.py` adopts the **host injection contract**: templates accept only callables such as `drift_func` / `targets_func` / `clauses_func`; if the injection is unavailable it is ruled **FAIL** and states which injection name is missing; the file does not `import render` and has no "return True if unavailable" fallback.
+- All 13 existing gate templates (such as `make_drift_gate`) can be loaded and executed as single files outside the kernel directory.
+
+---
+
+## 六、Known Defects (written here, not hidden)
+
+| # | Defect | Impact |
+|---|---|---|
+| 1 | ~~The contract is implicit; the whole repository has no interface definition, type convention or minimal example~~ → **Fixed (2026-11-09)**: added `examples/minimal_host.py` (does not depend on the three repositories and can directly produce one real check) and `pyproject.toml`; the interface description is still governed by this document, and no machine-validatable schema has been introduced | The contract still has no machine validation |
+| 2 | The contract **contains the private member `_inner`** | A private member has entered the external contract; the document can only describe it, not remove it |
+| 3 | **`render_all` is absent on every host edition**, and the call site has a `hasattr` guard | The feature is silently missing; even an all-green run cannot reveal it |
+| 4 | ~~Gate templates hard-depend on the host's `render` module~~ → **Fixed**: changed to host-injected functions, unavailable means FAIL | The kernel directory is now self-contained; broken dependencies are no longer silently swallowed by `except ImportError` |
+| 5 | **Gate template wiring is incomplete**: some host editions only import without calling; G-family templates are never registered by `core.register` | Capabilities already written cannot be taken out; mounting them would change the gate count, which is an unauthorized architectural action |
+| 6 | **The cost of a new product is "porting", not "integrating"** | A wrapper must be copied and dozens of gates registered by hand |
+| 7 | **Entry documentation does not match the implementation (a historical issue)**: the entry page once promised several subcommands the kernel never implemented. **Since 2026-11-09** `--quick` / `--full` / `--kernel` are actually implemented and written into this document and the README; `--strict` is explicitly a legacy-compatible flag | Copying commands from the old entry page may still fail; this document now prevails |
+| 8 | ~~The gate-count statistic is inconsistent with the conclusion line of `check --strict`~~ → **Fixed**: counting now follows line-leading `PASS + gate number` | The statistic equals the item count declared in the conclusion line on every round |
+| 9 | ~~The kernel once imported `daiban` by global name and called its private function `_date`~~ → **Fixed**: changed to reading the injected member `dbm.daiban` | Remaining scope: ① the contract surface still contains the private name `_date`; ② editions that do not provide the `daiban` member structurally always fall back on the recurring-todo line; ③ host wrappers may still import `daiban` themselves |
+| 10 | ~~`meta["zero_rules"]` was a declaration with no reconciliation~~ → **Fixed**: A1 requires the declaration to be true **and** the `.json` count in the rules directory to be 0; when reconciliation is impossible it records `unverifiable` and rules red | Remaining scope: **no reverse gate added**——when zero rules are declared but the directory is not empty and clauses can still be loaded, the first branch is taken and it is ruled green |
+| 11 | **A1 reconciliation makes the kernel require one more host member, `RULES_DIR`** | That member is not in the 12-item list of §三; a new edition that omits it gets an `unverifiable` red instead of a "contract requirement" |
+| 12 | ~~`build_parser()` registers the `check` subcommand twice, so calling it raises `argparse.ArgumentError: conflicting subparser: check` (both beta.3 / beta.4 are affected)~~ → **Fixed (2026-11-09)**: registered only once, `main()` reuses the same parser; regression case `bumao_core/test_build_parser.py` | The released beta.3 / beta.4 packages still carry this defect |
+
+Defects 1–4 are **kernel API design** issues, defects 5–6 are **wiring** issues, defects 7–8 are **documentation and tooling** issues,
+defects 9–11 are coupling issues of "the kernel reaching into the host to take things": 9 and 11 have been changed to the injection surface, 10 has had reconciliation added, and the remaining boundaries are as in the table above;
+defect 12 is a **CLI registration** issue, now locked down by a regression case.
+
+---
+
+## 七、Anti-Shrinkage Mechanism
+
+The module-level injection section of `engine.py` maintains `_registered_gate_ids = set()`, recording **all** gate ids ever registered;
+`set_expected(section, expected_set)` has the wrapper declare the expected set;
+`verify_registration(expected_set, edition_name="unknown")` computes `missing` / `extra` and returns False when there is any difference.
+
+**Effect**: commenting out any single `register()` line makes `check --strict` fail immediately.
+
+**Constraint**: the sole source of the expected set is the host wrapper's `set_expected()`——the kernel side stores no `EXPECTED_<edition>` constant (the kernel should not know edition identity).
+
+Definitions of the three measures (for host statistics):
+
+- `register` = the number of `core.register()` calls counted by AST, **the only authoritative measure**;
+- `declared` = the number declared by `set_expected()`;
+- `runtime` = the number of section A + section B items reported in the conclusion line of `check --strict`.
+
+---
+
+## 八、Version Correspondence
+
+| Layer | Version measure | Notes |
+|---|---|---|
+| Kernel | **Bumao Core 0.10** | The sole implementation is `engine.py` |
+| Contract | **implicit-v1** | This document; no machine validation yet |
+| Host rules library | Self-reported via the host `meta`'s `name` / `version` / `effective` | The kernel stores no edition name or version constant |
+| Frontend core files | `0.10` | As per the `core_manifest.json` manifest (13 files) |
+| Startup entry | Provided by the host wrapper | The kernel does not hard-code the entry file name; `whoami` takes it from `sys.argv[0]` |
+
+**Change constraints**:
+
+- When the kernel version changes, §二 (signatures) and §三 (member list) of this document must be updated in sync;
+- When the number of contract members changes, the member count declared in the README must be updated in sync;
+- After frontend core files change, `core_manifest.json` must be regenerated.
+
+---
+
+## 九、Pre-Change Mechanism for Core File Changes (three stages, independently re-runnable by third parties)
+
+Changes to core files are not governed by "a single contract page" (2026-11-07 ruling: the contract page is downgraded to a reference document and does not constitute a constraint), but by a three-stage mechanism: it cannot be changed, once changed it shows, and once it shows there is a cost.
+
+### 9.1 Read-only lock (cannot be changed)
+
+- Coverage: the 13 files registered in `20_view/web/core_manifest.json` on the three editions, 39 files in total, all `attrib +R`.
+- Tool `kernel/suoding.py`:
+  - `python -X utf8 kernel/suoding.py status` → prints "只读 x/13" and the list of unlocked files, per edition;
+  - `... lock` → locks all three editions (single edition via `--end <edition>`);
+  - `... unlock --end <edition> --files a.json,b.html --why "why" --who "executor" --eta 60 --impact token` → unlocks and automatically appends a notice line.
+- Unlocking is notification: bypassing the script with a direct `attrib -R` leaves no notice line, and the sentinel in 9.2 catches it.
+
+### 9.2 Sentinel (shows as soon as it changes)
+
+- Tool `kernel/shaobing.py`: `run` for a single round / `run --watch 60` to stay resident / `baseline` to reset the snapshot.
+- Watches the mtime / byte size / sha256 / read-only attribute of the 39 files.
+- Produces `90_lishi/core_shaobing.json` (previous-round snapshot) + `90_lishi/core_bianhua_jilu.txt` (change log: time | file | bytes before/after | sha before/after | read-only before/after).
+- Principle: it does not prevent writes, it only guarantees that writes are discovered; the log can serve directly as evidence.
+
+### 9.3 Downstream blocking (showing has a cost)
+
+- Tool `kernel/duanxia_zuduan.py --task <screenshot|baseline|release> --end <edition>`.
+- The criterion is evaluated live, not read from cache: run `check --strict` once against the target edition and take the line of the change-type gate.
+  - community → `B16` (every change must leave a trace);
+  - personal → `B48` (core file changes must be announced in advance; that edition's `B16` is "whole-repository table health check" and is not change-type);
+  - minimal → no section B (gate system G01—G16), truthfully returns N/A and does not pretend to be green.
+- Red means stop: exit code 3, prints "因 <闸> 红，已阻断：<动作>（<端>）".
+
+### 9.4 Notice file and gate slots
+
+- Location: `20_view/web/gaigai_yugao.txt` on each edition (one per edition, traveling with the edition).
+- Format: six fixed segments `时间 | 改哪几件 | 为什么 | 预计多久 | 影响面（token／接口／脱敏／基线／无） | 执行方`.
+- Gate slots: community `B29` / personal `B48`. Match = the file name hits the second segment + the notice time falls between the baseline and that file's mtime + the mtime is no later than "notice time + estimated duration + 10 minutes grace".
+- Exemptions: `check_last.json`, `saojian_zuijin.json` (runtime telemetry, written by the check itself).
+
+---
+
+## 十、Internal Files Outside the Contract Scope (N/A determination)
+
+The following three files **do not belong to the host contract surface** and are not shipped in public repositories. `contract_test.py` rules them `[N/A]` (not applicable),
+counting them neither as FAIL nor as SKIP; if a user supplies files of the same names inside `bumao_core/`, they still participate in compilation and isolation scanning.
+This is not "skipping because files are missing", but a determination made according to the contract scope:
+
+| File | Why it is not in the contract surface |
+|---|---|
+| `facts.py` | Internal document fact-source generator: scans the internal multi-edition directory tree (ledger / views / rule layer) and produces `facts.json`. Host integration does not need it; its input does not exist in the public repository. |
+| `facts_check.py` | The companion validator of `facts.py`: its only input is the internal `facts.json`. Without the generator it has nothing to validate. |
+| `portability_probe.py` | Internal portability probe: written against the internal directory tree and the local machine's scratch-area layout, containing host absolute-path forms; desensitizing it would destroy its original function, so it is not shipped. |
+
+Core files within the contract (`CORE_FILES`) remain hard dependencies: one missing, one empty, or one that fails to compile is a FAIL.
+
+---
+
+## 十一、Bundled Runtime Layer (`bumao_core/jiancha/`, since 0.2.2)
+
+The runtime layer is the implementation of "in-execution supervision"; it is **bundled but does not participate in kernel verdicts**: `engine.py` does not import it, and neither `selftest --kernel` nor `contract_test.py` depends on it.
+
+```
+bumao_core/jiancha/
+  supervisor.py        中断 / 恢复 / 停机状态机
+  ledger.py            只追加、带哈希链的动作账本
+  scope.py             in_scope / 冻结区 / 区根外入口解析
+  reasons.py           错误码查表
+  qingli.py            证据束与基线的留存清理
+  personal_adapter.py  宿主布局适配器（裸仓不生效）
+  gate_check.py        宿主闸门 A/B 自检（依赖宿主布局）
+  jiancha_canshu.json  运行参数
+  schema/reason_codes.json 错误码表（含 RESTORE_FAILED）
+```
+
+- **Off by default (loader available since 0.2.2)**: `bumao_core.jiancha.loader.load_if_enabled()` loads only when `BUMO_JIANCHA_MODE` is `shadow`／`enforce`; when unset, `off` or an unknown value it always returns `None`, creating no directory and writing no ledger. `engine.py` does not import the runtime layer.
+- **Relative imports**: inside the package always use `from . import ...`. The host's `10_rac/` already contains a `ledger.py` of the same name (a different ledger); do not insert it via `sys.path` and then import it absolutely, otherwise it will shadow the host module.
+- **Contract boundary**: the runtime layer does not change the 12 members the host must implement, nor any kernel verdict; it only consumes the events and file trees injected by the host.
+- **State convention**: on restore failure the whole round is aborted and already-restored items are retained; no new `partial` state is introduced; the failure code is `RESTORE_FAILED`.

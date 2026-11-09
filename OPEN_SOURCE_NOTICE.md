@@ -71,3 +71,81 @@ i18n.js  favicon.png  xtgl_clean.py  design_tokens.json
 维护者：Bumao
 
 本稿替代 2026-11-03 的旧稿（旧稿已移入 `90_lishi`）。本稿只写仓库内可核对的实物事实；与实物不符的旧表述已删除。
+
+---
+
+## English
+
+# Bumao XTGL Minimal — Open-Source Release Notice
+
+Verification date: 2026-11-07　Verification method: item-by-item comparison against the physical items in the repository
+
+## 1. Basic Information
+
+| Item | Value | Physical basis |
+|---|---|---|
+| Name | Bumao XTGL Minimal | `name` of `10_rac/meta.json` |
+| Version | 0.10 | `CORE_VERSION` of `20_view/web/xtgl_core.py`; `core_version` of `20_view/web/core_manifest.json` |
+| License | Apache License 2.0 | repository-root `LICENSE` and `10_rac/LICENSE`, the two are byte-identical |
+| Copyright line | `Copyright 2026 Bumao` | `NOTICE` |
+| Trademark | the usage boundary of the name and logo is in the repository-root `TRADEMARK.md` | physical file |
+| Port | `127.0.0.1:8804` | `port` of `20_view/web/web_config.json` |
+| Runtime environment | Python 3.12.14; functional code uses only the standard library | import lists of the entry script and core files |
+| Preset rules | 0 effective (`10_rac/rules/` is empty, `10_rac/examples/` additionally carries 28 example templates) | physical directory |
+| Front end | `20_view/web` shipped in full with the repository, not stripped, not minified, not obfuscated | physical directory |
+
+## 2. Core Files and Manifest Convention
+
+There are 13 core files under `20_view/web`, registered in `core_manifest.json`:
+
+```
+xtgl_core.py  serve.py  index.html  setup.html  tutorial.html
+kernelsync.py  module_check.py  modules.json  snapshot.py
+i18n.js  favicon.png  xtgl_clean.py  design_tokens.json
+```
+
+Among them `kernelsync.py` and `module_check.py` are local tools and are not published.
+
+`core_manifest.json` records the SHA256 of the above 13 files and is itself in the repository. Verification should be based on the physical items in the repository:
+
+- Files listed in the manifest must all be in the repository, and no core file outside the manifest may appear in the repository;
+- after any core file is changed, the maintainer recalculates the manifest locally (a local tool, not published);
+- the version number is recognized only from `CORE_VERSION` of `xtgl_core.py` and `core_version` of `core_manifest.json`; this document does not establish a separate version convention.
+
+## 3. Current State of Front-end Bundling and SPDX Marking
+
+The front-end source is under the same license and the same desensitization standard as the backend:
+
+- `index.html`, `setup.html`, `tutorial.html`, `i18n.js`, `design_tokens.json`, `favicon.png` are all shipped with the repository;
+- the 4 bundled Python core files (`xtgl_core.py`, `serve.py`, `snapshot.py`, `xtgl_clean.py`) all carry `SPDX-License-Identifier: Apache-2.0` in their header;
+- HTML and JS (`index.html`, `setup.html`, `tutorial.html`, `i18n.js`) currently **do not carry** SPDX comments; this item is to be added;
+- `modules.json` and `design_tokens.json` are data files and carry no SPDX comments;
+- the front end must not contain internal paths, internal role code names, private edition names, or references;
+- build artifacts, caches, `node_modules`, `*.bak*`, `*.tmp` are never packaged.
+
+## 4. Must Not Be Packaged
+
+- `web_config.local.json` (local private configuration)
+- `__pycache__/`, `*.pyc`
+- `*.bak*`, `*.tmp`, `*~`
+- `node_modules/`
+- any private configuration or other-edition file not listed in this repository
+- local paths, machine names, user names, internal role code names, intranet addresses
+
+## 5. Pre-release Self-check
+
+1. Under `10_rac`, run `python BumaoXTGL_Minimal_v01.py check --strict`; the result must be `ALL PASS`;
+2. Under `20_view/web`, verify the 13 hashes match `core_manifest.json` (done locally by the maintainer with the verification tool, a local tool, not published);
+3. Privacy rescan: zero hits for local paths, machine names, user names, internal role code names, intranet addresses;
+4. Cold start: unpack in a clean directory and start the service directly; the home page opens and the wizard runs;
+5. Confirm the package contains no `.bak`／`__pycache__`／`node_modules`.
+
+## 6. License Obligations
+
+- Distribution must retain the repository-root `LICENSE` and `NOTICE`;
+- modified files must be marked as changed;
+- the use of the name and logo is constrained by the repository-root `TRADEMARK.md`.
+
+Maintainer: Bumao
+
+This document replaces the old draft of 2026-11-03 (the old draft has been moved into `90_lishi`). This document writes only the physical facts verifiable in the repository; old statements inconsistent with the physical items have been removed.

@@ -419,7 +419,7 @@ def _auth_gate(kdir=None):
                        .get("current_value") or "")
         changed_on = str((_c.get("meta") or {}).get("updated_at") or "")
         if not declared or not changed_on:
-            return False, "契约缺 current_value 或 updated_at，授权闸无法判定"
+            return False, "契约缺 current_value 或 updated_at（判不了），A10 按 DENY 处理"
         ok, detail, _r = _gr.version_approval_check(declared, changed_on,
                                                    kroot)
         return ok, detail

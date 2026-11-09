@@ -125,6 +125,18 @@ def order_problems(order, now=None, live=None):
             normalize_rel(rel)                      # 形态不合格在装载期就炸
         except ScopeError as e:
             add("INVALID_APPROVED_PATH", "approved_roots/approved_files", "%s（%r）" % (e, rel))
+    zones = order.get("denied_zones")
+    if zones is not None:
+        if not isinstance(zones, list):
+            add("DENIED_ZONES_INVALID", "denied_zones",
+                "denied_zones 须为列表，收到 %r" % type(zones).__name__)
+        else:
+            for z in zones:
+                try:
+                    normalize_rel(z)                # 拒绝区写不成形态即配置错误，装载期就拒
+                except ScopeError as e:
+                    add("DENIED_ZONES_INVALID", "denied_zones",
+                        "拒绝区配置无效：%s（%r）" % (e, z))
     ws = str(order.get("workspace") or "").strip()
     if ws:
         try:
@@ -203,24 +215,36 @@ def under(rel, root):
 
 
 def denied(rel, zones):
+    """命中拒绝区返回区名，否则空串。拒绝区配置本身无效即抛——不得静默跳过（fail-closed）。"""
     r = normalize_rel(rel)
-    for z in zones or []:
+    if zones is None:
+        return ""
+    if not isinstance(zones, list):
+        raise ScopeError("拒绝区配置无效：denied_zones 须为列表，收到 %r" % type(zones).__name__,
+                         "DENIED_ZONES_INVALID")
+    for z in zones:
         try:
             z = normalize_rel(z)
-        except ScopeError:
-            continue
+        except ScopeError as e:
+            raise ScopeError("拒绝区配置无效：%s（%r）" % (e, z), "DENIED_ZONES_INVALID")
         if under(r, z):
             return z
     return ""
 
 
 def in_scope(rel, order):
-    """返回 (decision, reason, matched)。decision: in_scope / out_of_scope。"""
+    """返回 (decision, reason, matched)。decision: in_scope / out_of_scope。
+
+    拒绝区配置无效时按 out_of_scope 处理（一律不放行），并在 reason 里写明配置错误。
+    """
     try:
         r = normalize_rel(rel)
     except ScopeError as e:
         return "out_of_scope", str(e), ""
-    z = denied(r, order.get("denied_zones") or [])
+    try:
+        z = denied(r, order.get("denied_zones") or [])
+    except ScopeError as e:
+        return "out_of_scope", str(e), ""
     if z:
         return "out_of_scope", "命中拒绝区 denied_zones=%s" % z, ""
     for root in order.get("approved_roots") or []:
@@ -262,16 +286,55 @@ def workspace_abs(lab_root, order):
     return full
 
 
+def _true_path(full):
+    """把绝对路径解析成真实路径（逐级 realpath）。
+
+    目标不存在时按最近的已存在父目录的真实路径判定；父目录不是目录、链接悬空、
+    任何一级解析不出真实路径，一律返回 None——调用方据此拒绝（fail-closed）。
+    """
+    tail = []
+    cur = full
+    while True:
+        if os.path.lexists(cur):
+            if os.path.islink(cur) and not os.path.exists(cur):
+                return None                       # 悬空链接：无真实目标，判不了
+            real = os.path.realpath(cur)
+            if not os.path.exists(real):
+                return None                       # realpath 后仍不存在，判不了
+            break
+        parent = os.path.dirname(cur)
+        if not parent or parent == cur:
+            return None
+        tail.append(os.path.basename(cur))
+        cur = parent
+    if tail and not os.path.isdir(real):
+        return None                               # 父级是文件，无法在其下判定
+    for part in reversed(tail):
+        real = os.path.join(real, part)
+    return real
+
+
 def target_abs(workspace, rel):
-    """目标绝对路径。形态合法后仍做 commonpath 兜底（防符号链接式跨根）。"""
+    """目标绝对路径。形态合法后按真实路径（realpath）校验，链接不得跨出 workspace。
+
+    判不出真实路径（悬空链接、权限、跨盘）即拒；这是「拒绝写」而不是「放行」。
+    """
     r = normalize_rel(rel)
-    base = os.path.abspath(workspace)
+    base = os.path.realpath(os.path.abspath(workspace))
+    if not os.path.isdir(base):
+        raise ScopeError("workspace 无法解析成真实目录：%s" % workspace, "TARGET_UNRESOLVABLE")
     full = os.path.abspath(os.path.join(base, r.replace("/", os.sep)))
+    real = _true_path(full)
+    if real is None:
+        raise ScopeError("目标路径真实位置无法判定，拒绝执行：%s" % rel, "TARGET_UNRESOLVABLE")
+    nb = os.path.normcase(base)
+    nr = os.path.normcase(os.path.abspath(real))
     try:
-        if os.path.commonpath([base, full]) != base:
-            raise ScopeError("目标路径实际解析越出 workspace：%s" % rel, "TARGET_OUTSIDE_WORKSPACE")
+        inside = os.path.commonpath([nb, nr]) == nb
     except ValueError:
-        raise ScopeError("目标路径盘符不同，越出 workspace：%s" % rel, "TARGET_OUTSIDE_WORKSPACE")
+        inside = False
+    if not inside:
+        raise ScopeError("目标路径实际解析越出 workspace：%s" % rel, "TARGET_OUTSIDE_WORKSPACE")
     return full
 
 

@@ -2365,10 +2365,10 @@ function daibanRows(db){
 }
 
 function logKey(r){
-  // 项目以「留档所在目录」为准：...\任务目录\<项目名>\benci_gongcheng.txt
+  // 项目以「留档所在目录」为准：...\40_renwu\<项目名>\benci_gongcheng.txt
   // 归一：反斜杠→正斜杠，连续多斜杠压成一个（历史数据有多余斜杠这种写法）
   const p=(r.detail||'').replace(/\\/g,'/').replace(/\/+/g,'/');
-  const m=p.match(/\/任务目录\/([^/]+)\//);
+  const m=p.match(/\/40_renwu\/([^/]+)\//);
   if(m) return m[1];
   return '其他记录';
 }

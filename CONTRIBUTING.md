@@ -42,3 +42,50 @@ Signed-off-by: 你的名字 <你的邮箱>
 - 对事不对人，技术分歧用证据和可复现的实验解决。
 - 不提交他人的隐私数据；发现泄露请按 `SECURITY.md` 的渠道报告。
 - 维护者有权拒绝不符合本项目边界（纯标准库、无具体私有规则、无部署信息）的改动。
+
+---
+
+# Contributing（English）
+
+Thank you for wanting to take part in the Bumao project.
+
+## Before you start
+
+- Open an Issue first: state the problem you want to solve, the expected result and how to reproduce it. For larger changes, get maintainer confirmation first so the work is not wasted.
+- The runtime uses the **Python standard library only** and adds no third-party dependencies. Before submitting, confirm your `import`s add no third-party package.
+- Do not commit local paths, drive letters, user names, hostnames, email addresses, logs, backup files (`.bak*`) or any personal data.
+- One commit does one thing; do not mix formatting, refactoring and feature changes in the same PR.
+
+## Submission flow
+
+1. Fork the repository and create a branch from `main`.
+2. Make the change and run the self-check locally:
+   - kernel repository: `python -m compileall bumao_core`
+   - edition repository: `cd 10_rac && python <entry script> check --strict`
+3. Sign off on each commit with the DCO:
+
+   ```
+   git commit -s -m "fix: brief description"
+   ```
+
+4. Open a Pull Request stating the motivation, the scope of the change, the verification command and its result.
+
+## Commit messages
+
+Suggested prefixes: `feat:` / `fix:` / `docs:` / `refactor:` / `test:` / `chore:`. The body explains *why* the change is made, not only what changed.
+
+## DCO (Developer Certificate of Origin)
+
+This project uses DCO 1.1. Every commit must carry a sign-off line:
+
+```
+Signed-off-by: Your Name <your email>
+```
+
+`git commit -s` appends it automatically. The full DCO text is in `DCO` at the repository root.
+
+## Code of conduct
+
+- Argue about the work, not the person; settle technical disagreements with evidence and reproducible experiments.
+- Do not submit other people's private data; if you find a leak, report it through the channel described in `SECURITY.md`.
+- Maintainers may decline changes outside this project's boundary (standard library only, no specific private rules, no deployment information).
