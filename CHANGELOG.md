@@ -7,7 +7,7 @@
 - **加号依据：0.17→0.18（+0.01 正常晋升）→0.28（+0.10 内核跨档 0.1→0.2，同一版内叠加）** — 依据 `HX\personal\20_view\di00_qidong_zongze.txt` L55—60 的 0.6.8 逐级加号规则，不跳号、不跨级。
 - **应用内版本 `0.10` → `0.28`** — 生效声明 `00_meta/meta.json` 与执行器实际读取的 `10_rac/meta.json` 同步；`README.md` 两个版本空间说明同步。
 - **随包内核同步到 core `v0.2.2`** — 以 tag 内容为准，非工作树拷贝；整目录覆盖 `kernel/bumao_core/`，新增 `host_reference.py`、`test_a10_policy.py`、`test_gate_registry.py` 与 `jiancha/` 运行层子包。
-- **未变** — 规则 0 条／28 项检查；`A10`／`A13` 判定逻辑与判据输入一字未动。
+- **未变** — 规则 0 条／28 项检查；`A10`／`A13` 判定逻辑与判据输入无改动。
 
 ## 0.17 — 2026-11-09
 
@@ -17,7 +17,7 @@
 - **`build_parser()` 重复注册修复** — 旧内核连续两次 `sub.add_parser("check")`，调用即抛 `argparse.ArgumentError: conflicting subparser: check`；`main()` 过去另建一份解析器，文档里的参数因此从未真正注册。现在只有一份，`main()` 复用。
 - **三个参数由文档承诺改为真实实现** — `check --quick`（只跑 A 段结构闸，结论行明说不能替代 `--strict`）、`whoami --full`（追加 4 行诊断，不带时逐字不变）、`selftest --kernel`（6 项宿主无关自检）。随包新增 `kernel/bumao_core/test_build_parser.py`（4/4）。
 - **两种加载方式并存** — 新增 `kernel/bumao_core/__init__.py`，`pip install -e .` 与历史 `sys.path.insert` 都可用；`gate_count.py`／`test_equivalence.py` 在单仓 clone 下改为打印「需要三端同级检出」并退出 2，不再假绿或误报红。
-- **未变** — 规则 0 条／28 项检查、应用内版本 `0.10`、目录结构；`A10`／`A13` 判定逻辑未动，无当日授权条目时仍判 `DENY`。
+- **未变** — 规则 0 条／28 项检查、应用内版本 `0.10`、目录结构；`A10`／`A13` 判定逻辑无改动，无当日授权条目时仍判 `DENY`。
 - **已知红项（设计行为）** — 本机工作树已有基线，当日改内核件使 `A13` 判红（`改而未授权`）；`A10` 因随包审批册零条目恒判 `DENY`。下载件解出后首跑无基线，`A13` 先纳基线后通过，只剩 `A10`。
 
 ## 0.16 — 2026-11-09
