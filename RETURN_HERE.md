@@ -16,9 +16,9 @@ Iteration is paused; the current release is stable and usable as-is. When work r
    Run `python BumaoXTGL_Minimal_v01.py check --strict` twice (in `10_rac/`). This edition has no `check_last.json`; the two conclusions are the only credential.
    在 `10_rac/` 连跑两次 `check --strict`；本仓没有 `check_last.json`，两次结论一致才算基线。
 
-3. **What was in flight**
-   Read the top entry of `CHANGELOG.md` and `ROADMAP.md`. The top entry lists what the last release actually changed; the roadmap marks what was still in progress.
-   读 `CHANGELOG.md` 最上面一条与 `ROADMAP.md`：前者是上一版真实改动，后者标着当时未完成项。
+3. **What landed**
+   Read the top entry of `CHANGELOG.md` and `ROADMAP.md`. The top entry lists what the last release actually changed; the roadmap records the real status of the three 0.2 items (live in the maintainer's edition, not shipped here).
+   读 `CHANGELOG.md` 最上面一条与 `ROADMAP.md`：前者是上一版真实改动，后者按 2026-11-09 实跑写明三项状态（维护者活区已落地，本仓不随附）。
 
 ## Default-off switches · 默认关闭的开关
 

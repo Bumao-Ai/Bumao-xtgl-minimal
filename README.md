@@ -64,13 +64,13 @@ Add your rules by dropping chapter files into `10_rac/` and following the loader
 
 快速开始沿用上方命令块。`A10` 在没有当日授权条目时**显式判拒（DENY）**：本版随包的审批册是零条目结构模板，所以它红着，结果是 FAIL 而不是 PASS；「按设计红」只指公开仓不随附当日授权凭据，不等于豁免。detail 首段写 `A10 判定=DENY` 并标明策略 `deny`。
 
-## Roadmap (0.2 — in progress)
+## Roadmap (0.2 — live in the maintainer's edition; not shipped here)
 
 1. **Pre-execution constraint** — state the intent before acting; the kernel rules first. *Replayed on all three live editions on 2026-11-09: no order → reject, expired order → reject, out-of-scope target → reject, compliant order → pass (5/5 cases per edition). The supervisor is not bundled with this repository, so package behaviour stays `off`.*
 2. **Mid-execution supervision** — check while the work runs, not once at the end. *Replayed on 2026-11-09: action-level records (`op_id` / target / result), plus a real mid-sequence halt — an out-of-order change made while the sequence runs interrupts the next action with an `EXTERNAL_DRIFT` evidence bundle (`halt.json` / `diff.txt` / ledger snapshot / `manifest.sha256`), and work resumes only after recover plus a human approval. Bypassing the entry is recorded as post-hoc searchable only, never counted as covered. This round was re-run on the community and minimal live editions; the personal edition keeps its earlier same-day drill evidence and was not re-run.*
 3. **Post-hoc audit** — link operation, basis, result and exception into one traceable chain. *One command exports the full chain from any `op_id` on all three live editions (2026-11-09); `rule_id` / `run_id` / `error_code` sit on the ticket face.*
 
-Status: **in progress**。设计与沙盒原型已通；2026-11-09 三项已在维护者活区三端复跑。随包不附监督执行器，本仓保持 `off`，本节不声称已随包交付。
+Status: **landed in the maintainer's live edition** — all three 0.2 items were replayed on the three live editions on 2026-11-09, including this edition in its live tree. This repository is a desensitized template: the supervisor is not bundled, `BUMO_JIANCHA_MODE` stays `off`, and nothing here claims the items ran inside this package.
 
 ## Architecture
 
@@ -174,13 +174,13 @@ python BumaoXTGL_Minimal_v01.py check --strict   # 退出码即结论
 
 `A10` 的通过条件是随包 `30_taizhang/shenpi_jilu.txt` 里有当日的授权条目。本版随附该文件 10 条 2026-11-09 条目，因此克隆本 tag 后 `A10` 为 PASS（三态 `changed`：契约当日变更，当日条目覆盖）。若把该文件换成空模板，`A10` 即显式判拒（DENY）——结果是 FAIL，绝不是 PASS；通过凭的是随附条目，不是豁免。
 
-## Roadmap（0.2 — 进行中）
+## Roadmap（0.2 — 维护者活区已落地，本仓不随附）
 
 1. **执行前约束** — 动手前提交意图，由内核先判。*2026-11-09 在维护者活区三端复跑：无单→拒、过期单→拒、出界目标→拒、合规单→放行，每端 5/5 用例全过。随包不附监督执行器，本仓行为保持 `off`。*
 2. **执行中监管** — 过程中持续检查，而不是只在结束时判一次。*2026-11-09 复跑：动作级记录（`op_id`／目标／结果）＋真实的中途越界中断——序列还在跑时有人在单外改动，下一次动作前即以 `EXTERNAL_DRIFT` 中断并生成证据包（`halt.json`／`diff.txt`／账本快照／`manifest.sha256`），恢复须先 recover 再经人工批准 resume 才能继续。绕过入口只记为「仅事后可查」，不计入已覆盖。本轮在 community、minimal 活区复跑；personal 沿用当日早间演练留证，未重跑。*
 3. **执行后审计** — 把操作、依据、结果、异常四者关联成一条可追溯链。*任一 `op_id` 一条命令导出完整链路（2026-11-09 三端复跑）；`rule_id`／`run_id`／`error_code` 落在票面。*
 
-状态：**进行中**。设计与沙盒原型已通；2026-11-09 三项已在维护者活区三端复跑。随包不附监督执行器，本仓保持 `off`，本节不声称已随包交付。
+状态：**维护者活区已落地** —— 2026-11-09 三项在维护者活区三端复跑（含本端活区）。本仓是脱敏模板，不随附监督执行器，`BUMO_JIANCHA_MODE` 保持 `off`；本节不声称这些在本仓跑过。
 
 ## 架构
 
