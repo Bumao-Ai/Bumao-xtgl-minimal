@@ -1,4 +1,4 @@
-Bumao XTGL Minimal -- 0.29
+Bumao XTGL Minimal -- 0.30
 
 
 Single source of truth: rules/r*.json (edit via edit.py only).
