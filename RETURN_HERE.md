@@ -17,8 +17,8 @@ Iteration is paused; the current release is stable and usable as-is. When work r
    在 `10_rac/` 连跑两次 `check --strict`；本仓没有 `check_last.json`，两次结论一致才算基线。
 
 3. **What landed**
-   Read the top entry of `CHANGELOG.md` and `ROADMAP.md`. The top entry lists what the last release actually changed; the roadmap records the real status of the three 0.2 items (live in the maintainer's edition, not shipped here).
-   读 `CHANGELOG.md` 最上面一条与 `ROADMAP.md`：前者是上一版真实改动，后者按 2026-11-09 实跑写明三项状态（维护者活区已落地，本仓不随附）。
+   Read the top entry of `CHANGELOG.md` and the Roadmap section of `README.md`. The top entry lists what the last release actually changed; the README roadmap records the real status of the three 0.2 items (live in the maintainer's edition, not shipped here).
+   读 `CHANGELOG.md` 最上面一条与 `README.md` 的 Roadmap 一节：前者是上一版真实改动，后者按 2026-11-09 实跑写明三项状态（维护者活区已落地，本仓不随附）。
 
 ## Default-off switches · 默认关闭的开关
 
