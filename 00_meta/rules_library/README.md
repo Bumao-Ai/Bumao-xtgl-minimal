@@ -38,3 +38,46 @@
 - 删掉 `depends_on`，或把 `applies_to` 写成不存在的端，或依赖定义表里没有的能力 → 必须 FAIL；
 - 删掉五类槽位中的任意一个 → 必须 FAIL；
 - 把整个 `rules_library` 目录改名 → 不许崩：只提示「未建库」，快照该行显示「未建库（不影响启动）」。
+
+---
+
+## English
+
+# rules_library —— Reserved slot for the rules library (inactive by default, not auto-enabled)
+
+Landing point: each end's `00_meta/rules_library/` (host layer). The end's root directory is constrained by structure gate B5b (subdirectory names must match a two-digit number), so the library is mounted under 00_meta, on the same layer as the runtime declaration files; the effective rules directory (the one referenced by the `rules` section of `web_config.json`) is elsewhere, and the two are kept separate.
+
+In one sentence: only "slots" and "templates" live here; no one's private rules. All packs in this directory are `enabled=false`.
+
+## Directory
+- `schema.json` — the pack format definition; `module_check.py` validates against it;
+- `packs/` — five preset empty packs, all with empty rule arrays;
+- `examples/` — example templates, never auto-enabled; adapt one into your own pack and put it into `packs/`.
+
+## The five pack types
+| Pack | What it governs |
+|---|---|
+| `backup` | Backup and retention |
+| `audit` | Trails and ledgers |
+| `credential` | Credentials and gates |
+| `rollback` | Rollback and evidence |
+| `logging` | Logs and review |
+
+## How to attach a rule from the rules library (six steps)
+1. Copy `examples/example-template.json`, rename it, and put it into `packs/`;
+2. Fill in your own rules according to `schema.json` — write only your own actions and scope, and **do not write the titles / numbers / body text of the actual clauses**; leave thresholds, days and counts blank for you to fill in yourself, and preset no values in the repository or the code;
+3. Change that pack's `enabled` to `true` (if you do not change it, it will never take effect);
+4. Run `python 20_view/web/module_check.py`: a bad pack format must FAIL, and only a correct format lets you continue;
+5. Run the gate `check --strict`: it must be all green;
+6. Open the rules-library row under "capability mounting" in the front end to see the live count — packs that are not enabled do not enter the snapshot; only enabled ones appear.
+
+## Red lines (violating any one counts as breaking the reservation)
+① Contain no titles / numbers / body text of the actual clauses; ② Do not hard-code days, counts, item counts or versions;
+③ Do not preset behavior and do not auto-enable; ④ Do not crash the three ends' startup when the library is empty (a missing directory is only a hint, not an error);
+⑤ Only packs with `enabled=true` and non-empty rules are allowed to appear in the snapshot.
+
+## Negative cases (build them yourself to verify whether they are caught)
+- Change any pack in `packs/` into bad JSON → `module_check` must FAIL;
+- Delete `depends_on`, or write a nonexistent end into `applies_to`, or reference a capability that is not in the dependency definition table → must FAIL;
+- Delete any one of the five slot categories → must FAIL;
+- Rename the entire `rules_library` directory → it must not crash: only report "library not built", and the snapshot row shows "library not built (does not affect startup)".

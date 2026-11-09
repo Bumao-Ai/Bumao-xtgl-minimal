@@ -2,3 +2,12 @@
 | 2.1 | 0.10 | 2026-11-01 | 16 | 示例行：首次同步前端能力 |
 | 0.2.2 | 0.28 | 2026-11-09 | 版本声明 0.10→0.28；加号依据：0.17→0.18 +0.01 正常晋升；0.18→0.28 +0.10 内核跨档 0.1→0.2，同一版内叠加 | 随包内核整目录同步 core v0.2.2（06d78fb）；判据输入一字未动 |
 | 0.2.3 | 0.29 | 2026-11-09 | 版本声明 0.28→0.29；加号依据：0.28→0.29 +0.01 同档正常晋升 | 随包内核整目录同步 core v0.2.3（282d684），28 件逐件 SHA256 一致；判据输入一字未动 |
+
+---
+
+## English
+
+| Upstream version | Local version | Sync date | Synced entry count | Remarks |
+| 2.1 | 0.10 | 2026-11-01 | 16 | Example row: first sync of front-end capabilities |
+| 0.2.2 | 0.28 | 2026-11-09 | Version declaration 0.10→0.28; increment basis: 0.17→0.18 +0.01 normal promotion; 0.18→0.28 +0.10 kernel crossing tiers 0.1→0.2, stacked within the same version | Bundled kernel synced as a whole directory from core v0.2.2 (06d78fb); criterion inputs untouched, not a single character changed |
+| 0.2.3 | 0.29 | 2026-11-09 | Version declaration 0.28→0.29; increment basis: 0.28→0.29 +0.01 normal promotion within the same tier | Bundled kernel synced as a whole directory from core v0.2.3 (282d684), 28 items SHA256-identical item by item; criterion inputs untouched, not a single character changed |

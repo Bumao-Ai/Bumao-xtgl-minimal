@@ -26,3 +26,36 @@
 下一步：先定义模块契约
 证据：无
 复核：2027-01-01
+
+---
+
+## English
+
+===============================================================
+Long-term goal tracking (example file goals.example.txt)
+Usage: copy it as goals.txt, and write "goals": "goals.txt" in web_config.json,
+     or set the environment variable XTGL_GOALS to point to the absolute path of that file.
+Format: each goal starts with [G<number>], and each field is one "key: value" per line.
+===============================================================
+
+[G1]
+Goal: make the core run stably
+Stage: Stage 1 · independently runnable
+Status: In progress
+Progress: 40
+Related project: XTGL
+Related files:
+Next step: get it running with three commands on a clean machine
+Evidence: local tests passed
+Review: 2026-12-01
+
+[G2]
+Goal: let multiple systems share the same core
+Stage: Stage 2 · multiple systems
+Status: Not started
+Progress: 0
+Related project: XTGL
+Related files:
+Next step: define the module contract first
+Evidence: none
+Review: 2027-01-01
