@@ -1,5 +1,4 @@
 # Bumao XTGL · Minimal
-[![XERJ Corpus Hub contributor](https://hub.xerj.org/contributors/Bumao-Ai/badge.svg)](https://hub.xerj.org/contributors/Bumao-Ai)
 
 Status: maintenance pause
 状态：维护暂停，稳定可用
@@ -12,6 +11,7 @@ Status: maintenance pause
 ![rules](https://img.shields.io/badge/rules-0-lightgrey)
 ![checks](https://img.shields.io/badge/checks-28-brightgreen)
 ![runtime](https://img.shields.io/badge/runtime-stdlib%20only-informational)
+[![XERJ Corpus Hub contributor](https://hub.xerj.org/contributors/Bumao-Ai/badge.svg)](https://hub.xerj.org/contributors/Bumao-Ai)
 
 > **Two version spaces** — the in-app version in `00_meta/meta.json` is `0.34`; the repository release tag is `v0.22`. They are two independent numbering spaces, not the same number.
 > **两个版本空间** — 应用内版本（`00_meta/meta.json`）是 `0.34`；仓库发布 tag 是 `v0.22`。这是两个独立的编号空间，不是同一个数字。
