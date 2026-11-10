@@ -1,5 +1,6 @@
 # Bumao XTGL · Minimal
 [![XERJ Corpus Hub contributor](https://hub.xerj.org/contributors/Bumao-Ai/badge.svg)](https://hub.xerj.org/contributors/Bumao-Ai)
+
 Status: maintenance pause
 状态：维护暂停，稳定可用
 
